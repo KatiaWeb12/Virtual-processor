@@ -1,0 +1,465 @@
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F71DC (32-bit), Flags: Cmdre0, Thread: 0x2AE8 (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal()
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x0041EB0A in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPop()
+# 4 0x0041F9A7 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile()
+# 5 0x0041F405 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main()
+
+TXLib печалится: Нет информации об исходных файлах. Вы не забыли опцию -g при компиляции?
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 18:18:58, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 18:19:00
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F71DC (32-bit), Flags: Cmdre0, Thread: 0x2058 (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal()
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x0041EB0A in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPop()
+# 4 0x0041F9A7 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile()
+# 5 0x0041F405 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main()
+
+TXLib печалится: Нет информации об исходных файлах. Вы не забыли опцию -g при компиляции?
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 18:19:45, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 18:19:47
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F71DC (32-bit), Flags: Cmdre0, Thread: 0x2AFC (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal()
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x0041EB0A in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPop()
+# 4 0x0041F9A7 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile()
+# 5 0x0041F405 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main()
+
+TXLib печалится: Нет информации об исходных файлах. Вы не забыли опцию -g при компиляции?
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 18:20:30, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 18:20:33
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F81DC (32-bit), Flags: Cmdre0, Thread: 0x3F78 (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal()
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x0041EB0A in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPop()
+# 4 0x0041F9E4 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile()
+# 5 0x0041F405 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main()
+
+TXLib печалится: Нет информации об исходных файлах. Вы не забыли опцию -g при компиляции?
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 18:27:41, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 18:27:43
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F81DC (32-bit), Flags: Cmdre0, Thread: 0x2B70 (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal()
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x0041EB0A in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPop()
+# 4 0x0041F9E4 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile()
+# 5 0x0041F405 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main()
+
+TXLib печалится: Нет информации об исходных файлах. Вы не забыли опцию -g при компиляции?
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 18:31:21, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 18:31:24
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F81DC (32-bit), Flags: Cmdre0, Thread: 0x56D0 (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal()
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x0041EB0A in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPop()
+# 4 0x0041F9E4 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile()
+# 5 0x0041F405 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main()
+
+TXLib печалится: Нет информации об исходных файлах. Вы не забыли опцию -g при компиляции?
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 18:31:21, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 18:36:04
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F81DC (32-bit), Flags: Cmdre0, Thread: 0x4614 (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal()
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x0041EB0A in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPop()
+# 4 0x0041F9FF in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile()
+# 5 0x0041F420 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main()
+
+TXLib печалится: Нет информации об исходных файлах. Вы не забыли опцию -g при компиляции?
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 18:36:41, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 18:36:44
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F81DC (32-bit), Flags: Cmdre0, Thread: 0x3D4C (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal() at C:/Users/Kate/Desktop/downloads/TX/TXLib.h:11343
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+
+# 3 0x0041EA42 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPush() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/../Task5 stack/stack.cpp:73:
+
+     71: {
+     72: 
+=>   73:     ASSERT_OK(stk, stackPush);
+     74: 
+     75:     if ((stk->size) >= (stk->capacity)) {
+
+# 4 0x00420CC4 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: badDataCanaryTest() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/virtual-processor.cpp:505:
+
+    503:     *getRightDataCanary(&stk1) = 8;
+    504: 
+=>  505:     error = stackPush(&stk1, 3);
+    506:     if(error){
+    507:         printf("The function stackPush was completed with an error code: %d\n", error);
+
+# 5 0x00420851 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/virtual-processor.cpp:389:
+
+    387: 
+    388:             case MY_BREAK:{
+=>  389:                 badDataCanaryTest();
+    390:             }
+    391: 
+
+# 6 0x0041F9FA in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/virtual-processor.cpp:34:
+
+     32:     STACK_INIT(&stk, 3);
+     33: 
+=>   34:     accomplishmentExeFile(usedFiles.exeFile, &stk);
+     35: 
+     36:     return 0;
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 19:29:31, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 19:29:34
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x004F81DC (32-bit), Flags: Cmdre0, Thread: 0x5088 (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x0040B361 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal() at C:/Users/Kate/Desktop/downloads/TX/TXLib.h:11343
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+
+# 3 0x0041EA42 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPush() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/../Task5 stack/stack.cpp:73:
+
+     71: {
+     72: 
+=>   73:     ASSERT_OK(stk, stackPush);
+     74: 
+     75:     if ((stk->size) >= (stk->capacity)) {
+
+# 4 0x00420106 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/virtual-processor.cpp:216:
+
+    214:             case MY_PUSH:{
+    215: 
+=>  216:                 stackPush(stack, arg * 1000);
+    217:                 break;
+    218:             }
+
+# 5 0x0041FA2B in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/virtual-processor.cpp:38:
+
+     36:     }
+     37: 
+=>   38:     accomplishmentExeFile(usedFiles.exeFile, &stk);
+     39: 
+     40:     return 0;
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 19:33:50, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, Debug
+Started:	Oct 06 2026 19:33:53
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x48C8 (Main), GetLastError(): 183 (Невозможно создать файл, так как он уже существует). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00414FFE in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: (anonymous namespace)::TX::_txOnSignal() at C:/Users/Kate/Desktop/downloads/TX/TXLib.h:11343
+# 1 0x757A8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x757AD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+
+# 3 0x0043605B in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: stackPop() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/../Task5 stack/stack.cpp:97:
+
+     95: {
+     96: 
+=>   97:     ASSERT_OK(stk, stackPop);
+     98: 
+     99:     stk->size--;
+
+# 4 0x00437A41 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: accomplishmentExeFile() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/virtual-processor.cpp:317:
+
+    315:                 stackElem_t value = 0;
+    316: 
+=>  317:                 stackPop(stack, &value);
+    318: 
+    319:                 double degrees = (double)value / 1000;
+
+# 5 0x00436F49 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/virtual-processor.cpp:39:
+
+     37:     }
+     38: 
+=>   39:     accomplishmentExeFile(usedFiles.exeFile, &stk);
+     40: 
+     41:     return 0;
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct  6 2026 21:33:56, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 06 2026 21:34:00
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\virtual-processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
