@@ -1,13 +1,13 @@
-// #include <TXLib.h>
+#include <TXLib.h>
 #include <stdio.h>
-#include <math.h>
 #include <sys/stat.h>
 #include <assert.h>
 #include <string.h>
 
-#include "virtual-processor.h"
 #include "../universal-features/error.h"
 #include "../Task5 stack/stack.cpp"
+#include "virtual-processor.h"
+#include "math-functions.cpp"
 
 int main(int argc, char* argv[]){
 
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
 
     consoleProgramOutput(&asmProgramData);
 
-    formExeFile(usedFiles.exeFile, &asmProgramData);
+    assembler(usedFiles.exeFile, &asmProgramData);
 
     struct stack_t stk = {};
     ErrorCode error = STACK_INIT(&stk, 3);
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]){
         return error;
     }
 
-    accomplishmentExeFile(usedFiles.exeFile, &stk);
+    CPUexecute(usedFiles.exeFile, &stk);
 
     return 0;
 }
@@ -118,7 +118,7 @@ size_t calculateStringsCount(const char* text){
     return stringCount;
 }
 
-ErrorCode formExeFile(char* fileName, struct asmProgramInfo* asmProgramData){
+ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
 
     if(asmProgramData == NULL) return ERR_INVALID_ARGUMENT;
 
@@ -136,49 +136,93 @@ ErrorCode formExeFile(char* fileName, struct asmProgramInfo* asmProgramData){
 
         if (strcmp(command, "PUSH") == 0) {
 
-            if (sscanfResult != 2) {
-                if (fclose(file) != 0) {
-                    printf("Warning: the file wasn't closed");
-                }
-                return ERR_INVALID_DATA;
-            }
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d %d\n", MY_PUSH, argument);
         }
         else if (strcmp(command, "ADD") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_ADD);
         }
         else if (strcmp(command, "SUB") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_SUB);
         }
         else if (strcmp(command, "MUL") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_MUL);
         }
         else if (strcmp(command, "DIV") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_DIV);
         }
         else if (strcmp(command, "SQUARE") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_SQUARE);
         }
         else if (strcmp(command, "SIN") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_SIN);
         }
         else if (strcmp(command, "COS") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_COS);
         }
         else if (strcmp(command, "TG") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_TG);
         }
         else if (strcmp(command, "CTG") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_CTG);
         }
         else if (strcmp(command, "BREAK") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_BREAK);
         }
         else if (strcmp(command, "OUT") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_OUT);
         }
         else if (strcmp(command, "HLT") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
             fprintf(file, "%d\n", MY_HLT);
         }
         else {
@@ -197,7 +241,7 @@ ErrorCode formExeFile(char* fileName, struct asmProgramInfo* asmProgramData){
     return ERR_OK;
 }
 
-ErrorCode accomplishmentExeFile(char* fileName, stack_t* stack){
+ErrorCode CPUexecute(char* fileName, stack_t* stack){
 
     FILE* file = fopen(fileName, "r");
     if(file == NULL) return ERR_UNKNOWN;
@@ -411,165 +455,39 @@ ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount){
     return ERR_OK;
 }
 
-double degreesToRadians(double degrees) {
+ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line){
 
-    return degrees * M_PI / 180.0;
-}
+    if (sscanfResult != operationArgsCount) {
+        if (fclose(file) != 0) {
+            printf("Warning: the file wasn't closed");
+        }
 
-ErrorCode addCommand(stack_t* stack){
+        debugLog_t debugLogInfo = {};
+        LOG_STRUCT_FORMAT((&debugLogInfo), stk, function, line);
+        debugLogInfo.error = ERR_INVALID_DATA;
+        printErrorIntoConsole(&debugLogInfo);
 
-    if(stack == NULL){
-        return ERR_INVALID_ARGUMENT;
+        return ERR_INVALID_DATA;
     }
-
-    stackElem_t value1 = 0;
-    stackElem_t value2 = 0;
-
-    stackPop(stack, &value1);
-    stackPop(stack, &value2);
-    stackPush(stack, value1 + value2);
-
-    return ERR_OK;
-}
-
-ErrorCode subCommand(stack_t* stack){
-
-    if(stack == NULL){
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    stackElem_t value1 = 0;
-    stackElem_t value2 = 0;
-
-    stackPop(stack, &value1);
-    stackPop(stack, &value2);
-    stackPush(stack, value1 - value2);
-
-    return ERR_OK;
-}
-
-ErrorCode mulCommand(stack_t* stack){
-
-    if(stack == NULL){
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    stackElem_t value1 = 0;
-    stackElem_t value2 = 0;
-
-    stackPop(stack, &value1);
-    stackPop(stack, &value2);
-    stackPush(stack, (stackElem_t)((double)value1 * value2 / 1000));
-
-    return ERR_OK;
-}
-
-ErrorCode divCommand(stack_t* stack){
-
-    if(stack == NULL){
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    stackElem_t value1 = 0;
-    stackElem_t value2 = 0;
-
-    stackPop(stack, &value1);
-    stackPop(stack, &value2);
-
-    double result = (double)value2 / (double)value1;
-
-    stackPush(stack, (stackElem_t)(result * 1000));
-
-    return ERR_OK;
-}
-
-ErrorCode squareCommand(stack_t* stack){
-
-    if(stack == NULL){
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    stackElem_t value = 0;
-
-    stackPop(stack, &value);
-
-    double result = sqrt((double)value / 1000);
-
-    stackPush(stack, (stackElem_t)(result * 1000));
-
-    return ERR_OK;
-}
-
-ErrorCode sinCommand(stack_t* stack){
-
-    if(stack == NULL){
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    stackElem_t value = 0;
-
-    stackPop(stack, &value);
-
-    double degrees = (double)value / 1000;
-    double result = sin(degreesToRadians(degrees));
-    stackPush(stack, (stackElem_t)(result * 1000));
 
     return ERR_OK;
 
 }
 
-ErrorCode cosCommand(stack_t* stack){
+ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo) {
 
-    if(stack == NULL){
+    if(debugLogInfo == NULL){
         return ERR_INVALID_ARGUMENT;
     }
 
-    stackElem_t value = 0;
-
-    stackPop(stack, &value);
-
-    double degrees = (double)value / 1000;
-    double result = cos(degreesToRadians(degrees));
-    stackPush(stack, (stackElem_t)(result * 1000));
-
-    return ERR_OK;
-
-}
-
-ErrorCode tgCommand(stack_t* stack){
-
-    if(stack == NULL){
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    stackElem_t value = 0;
-
-    stackPop(stack, &value);
-
-    double degrees = (double)value / 1000;
-    double result = tan(degreesToRadians(degrees));
-    stackPush(stack, (stackElem_t)(result * 1000));
+    printf("[%s] Function '%s' was completed with Error %d in file '%s' in line %d \n",
+            debugLogInfo->time,
+            debugLogInfo->function,
+            debugLogInfo->error,
+            debugLogInfo->file,
+            debugLogInfo->line);
 
     return ERR_OK;
-
-}
-
-ErrorCode ctgCommand(stack_t* stack){
-
-    if(stack == NULL){
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    stackElem_t value = 0;
-
-    stackPop(stack, &value);
-
-    double degrees = (double)value / 1000;
-    double result = 1 / tan(degreesToRadians(degrees));
-    stackPush(stack, (stackElem_t)(result * 1000));
-
-    return ERR_OK;
-
 }
 
 void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]){

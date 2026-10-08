@@ -1,6 +1,3 @@
-#include "../universal-features/error.h"
-#include "../Task5 stack/stack.h"
-
 // Constants
 const size_t MAX_PATH_LENGTH = 300;
 const size_t MAX_COMMAND_LENGTH = 300;
@@ -39,8 +36,8 @@ struct asmProgramInfo {
 ErrorCode readTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData);
 ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData);
 ErrorCode recordPtrStrings(struct asmProgramInfo* asmProgramData);
-ErrorCode formExeFile(char* fileName, struct asmProgramInfo* asmProgramData);
-ErrorCode accomplishmentExeFile(char* fileName, stack_t* stack);
+ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData);
+ErrorCode CPUexecute(char* fileName, stack_t* stack);
 ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount);
 size_t calculateStringsCount(const char* text);
 void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
@@ -48,6 +45,8 @@ void cancelBuffering();
 ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData);
 double degreesToRadians(double degrees);
 ErrorCode openFile(char* fileName, const char mode);
+ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo);
+ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line);
 
 ErrorCode addCommand(struct stack_t* stack);
 ErrorCode subCommand(struct stack_t* stack);
