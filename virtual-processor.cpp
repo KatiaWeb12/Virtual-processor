@@ -3,11 +3,14 @@
 #include <sys/stat.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "../universal-features/error.h"
 #include "../Task5 stack/stack.cpp"
 #include "virtual-processor.h"
 #include "math-functions.cpp"
+#include "extra-functions.cpp"
+
 
 int main(int argc, char* argv[]){
 
@@ -36,12 +39,25 @@ int main(int argc, char* argv[]){
         return error;
     }
 
-    CPUexecute(usedFiles.exeFile, &stk);
+    CPUInfo CPUData = {};
+    CPUData.stack = &stk;
+
+    #ifdef CPU_DEBUG
+        CPUData.debugInfo = {
+            "CPUData",
+            __FILE__,
+            __func__,
+            __LINE__
+        };
+    #endif
+
+    CPUexecute(usedFiles.exeFile, &CPUData);
+
 
     return 0;
 }
 
-ErrorCode readTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData){
+ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData){
 
     FILE* file = fopen(fileName, "r");
     if(file == NULL) return ERR_UNKNOWN;
@@ -69,15 +85,15 @@ ErrorCode readTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* 
 
 ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData){
 
-    readTextIntoSingleBuffer(fileName, asmProgramData);
+    readAsmTextIntoSingleBuffer(fileName, asmProgramData);
     asmProgramData->stringsCount = calculateStringsCount(asmProgramData->textOfAsmProgram);
-    recordPtrStrings(asmProgramData);
+    recordPtrStringsForAsm(asmProgramData);
 
     return ERR_OK;
 
 }
 
-ErrorCode recordPtrStrings(struct asmProgramInfo* asmProgramData){
+ErrorCode recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData){
 
     if(asmProgramData == NULL) return ERR_INVALID_ARGUMENT;
 
@@ -128,97 +144,138 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
 
     for(size_t i = 0; i < asmProgramData->stringsCount; i++){
 
-        char command[MAX_COMMAND_LENGTH];
-        size_t argument = 0;
-        int sscanfResult = sscanf((asmProgramData->programLines)[i], "%s %d", command, &argument);
+        struct asmInstruction command = {};
+
+        char commandName[MAX_COMMAND_LENGTH];
+        char argument[MAX_COMMAND_LENGTH];
+
+        int sscanfResult = sscanf((asmProgramData->programLines)[i], "%299s %299s", commandName, argument);
+
+        command.commandName = commandName;
+        command.arg = argument;
 
         if(sscanfResult == 0) continue;
 
-        if (strcmp(command, "PUSH") == 0) {
+        if (strcmp(commandName, "PUSH") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-            fprintf(file, "%d %d\n", MY_PUSH, argument);
+            int regIndex = getRegisterIndex(argument);
+
+            if (regIndex != -1) {
+                fprintf(file, "%d %d\n", MY_PUSH_REG, regIndex);
+            }
+            else {
+                char* endPtr = NULL;
+                long value = strtol(argument, &endPtr, 10);
+
+                if (*endPtr != '\0') {
+                    if (fclose(file) != 0) {
+                        printf("Warning: the file wasn't closed");
+                    }
+                    return ERR_INVALID_DATA;
+                }
+
+                fprintf(file, "%d %ld\n", MY_PUSH, value);
+            }
         }
-        else if (strcmp(command, "ADD") == 0) {
+
+        else if (strcmp(commandName, "POP") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
+            int regIndex = getRegisterIndex(argument);
+
+            if (regIndex == -1) {
+                if (fclose(file) != 0) {
+                    printf("Warning: the file wasn't closed");
+                }
+                return ERR_INVALID_ARGUMENT;
+            }
+
+            fprintf(file, "%d %d\n", MY_POP_REG, regIndex);
+        }
+
+        else if (strcmp(commandName, "ADD") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_ADD);
         }
-        else if (strcmp(command, "SUB") == 0) {
+        else if (strcmp(commandName, "SUB") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_SUB);
         }
-        else if (strcmp(command, "MUL") == 0) {
+        else if (strcmp(commandName, "MUL") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_MUL);
         }
-        else if (strcmp(command, "DIV") == 0) {
+        else if (strcmp(commandName, "DIV") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_DIV);
         }
-        else if (strcmp(command, "SQUARE") == 0) {
+        else if (strcmp(commandName, "SQUARE") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_SQUARE);
         }
-        else if (strcmp(command, "SIN") == 0) {
+        else if (strcmp(commandName, "SIN") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_SIN);
         }
-        else if (strcmp(command, "COS") == 0) {
+        else if (strcmp(commandName, "COS") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_COS);
         }
-        else if (strcmp(command, "TG") == 0) {
+        else if (strcmp(commandName, "TG") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_TG);
         }
-        else if (strcmp(command, "CTG") == 0) {
+        else if (strcmp(commandName, "CTG") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_CTG);
         }
-        else if (strcmp(command, "BREAK") == 0) {
+        else if (strcmp(commandName, "BREAK") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_BREAK);
         }
-        else if (strcmp(command, "OUT") == 0) {
+        else if (strcmp(commandName, "OUT") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
             fprintf(file, "%d\n", MY_OUT);
         }
-        else if (strcmp(command, "HLT") == 0) {
+        else if (strcmp(commandName, "HLT") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
             if(checkOper != ERR_OK) return ERR_INVALID_DATA;
@@ -226,7 +283,7 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
             fprintf(file, "%d\n", MY_HLT);
         }
         else {
-            printf("Unknown command: %s\n", command);
+            printf("Unknown command: %s\n", commandName);
 
             if (fclose(file) != 0) {
                 printf("Warning: the file wasn't closed");
@@ -241,7 +298,7 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
     return ERR_OK;
 }
 
-ErrorCode CPUexecute(char* fileName, stack_t* stack){
+ErrorCode CPUexecute(char* fileName, CPUInfo* CPUData){
 
     FILE* file = fopen(fileName, "r");
     if(file == NULL) return ERR_UNKNOWN;
@@ -262,13 +319,13 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
 
             case MY_PUSH:{
 
-                stackPush(stack, arg * 1000);
+                stackPush(CPUData->stack, arg * 1000);
                 break;
             }
 
             case MY_ADD:{
 
-                if (checkStackBeforeOperation(stack, 2) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -276,14 +333,14 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                addCommand(stack);
+                addCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_SUB: {
 
-                if (checkStackBeforeOperation(stack, 2) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -291,14 +348,14 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                subCommand(stack);
+                subCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_MUL:{
 
-                if (checkStackBeforeOperation(stack, 2) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -306,14 +363,14 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                mulCommand(stack);
+                mulCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_DIV: {
 
-                if (checkStackBeforeOperation(stack, 2) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -321,14 +378,14 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                divCommand(stack);
+                divCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_SQUARE: {
 
-                if (checkStackBeforeOperation(stack, 1) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -336,14 +393,14 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                squareCommand(stack);
+                squareCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_SIN:{
 
-                if (checkStackBeforeOperation(stack, 1) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -351,14 +408,14 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                sinCommand(stack);
+                sinCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_COS:{
 
-                if (checkStackBeforeOperation(stack, 1) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -366,14 +423,14 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                cosCommand(stack);
+                cosCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_TG: {
 
-                if (checkStackBeforeOperation(stack, 1) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -381,14 +438,14 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                tgCommand(stack);
+                tgCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_CTG: {
 
-                if (checkStackBeforeOperation(stack, 1) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -396,18 +453,18 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                     return ERR_INVALID_DATA;
                 }
 
-                ctgCommand(stack);
+                ctgCommand(CPUData->stack);
 
                 break;
             }
 
             case MY_BREAK:{
-                *getRightDataCanary(stack) = 8;
+                *getRightDataCanary(CPUData->stack) = 8;
             }
 
             case MY_OUT:{
 
-                if (checkStackBeforeOperation(stack, 1) != ERR_OK) {
+                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
                     if (fclose(file) != 0) {
                         printf("Warning: the file wasn't closed");
@@ -416,8 +473,8 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                 }
 
                 stackElem_t value = 0;
-                stackPop(stack, &value);
-                stackPush(stack, value);
+                stackPop(CPUData->stack, &value);
+                stackPush(CPUData->stack, value);
                 printf("\nRESULT: %d \n", (stackElem_t)((double)(value) / 1000));
 
                 break;
@@ -430,6 +487,53 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
                 }
                 return ERR_OK;
             }
+            case MY_PUSH_REG: {
+
+                if (arg < 0 || arg >= REGISTER_COUNT) {
+                    if (fclose(file) != 0) {
+                        printf("Warning: the file wasn't closed");
+                    }
+                    return ERR_INVALID_ARGUMENT;
+                }
+
+                ErrorCode error = stackPush(CPUData->stack, CPUData->registers[arg]);
+
+                if (error != ERR_OK) {
+                    if (fclose(file) != 0) {
+                        printf("Warning: the file wasn't closed");
+                    }
+                    return error;
+                }
+
+                break;
+            }
+            case MY_POP_REG: {
+
+                if (arg < 0 || arg >= REGISTER_COUNT) {
+                    if (fclose(file) != 0) {
+                        printf("Warning: the file wasn't closed");
+                    }
+                    return ERR_INVALID_ARGUMENT;
+                }
+
+                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
+                    if (fclose(file) != 0) {
+                        printf("Warning: the file wasn't closed");
+                    }
+                    return ERR_INVALID_DATA;
+                }
+
+                ErrorCode error = stackPop(CPUData->stack, &(CPUData->registers[arg]));
+
+                if (error != ERR_OK) {
+                    if (fclose(file) != 0) {
+                        printf("Warning: the file wasn't closed");
+                    }
+                    return error;
+                }
+
+                break;
+            }
             default:{
 
                 printf("Unknown command: %d\n", command);
@@ -441,97 +545,124 @@ ErrorCode CPUexecute(char* fileName, stack_t* stack){
             }
         }
 
+        CPU_DUMP(CPUData);
+
     }
 
     return ERR_INVALID_DATA;
 }
 
-ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount){
 
-    if(stack == NULL) return ERR_INVALID_ARGUMENT;
+// Processor
 
-    if(stack->size < argCount) return ERR_INVALID_DATA;
+ErrorCode readExeProgram(const char* fileName, struct CPUInfo* CPUData){
+
+    readExeTextIntoSingleBuffer(fileName, CPUData);
+    CPUData->stringsCount = calculateStringsCount(CPUData->textOfExeProgram);
+    recordPtrStringsForExe(CPUData);
 
     return ERR_OK;
+
 }
 
-ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line){
+ErrorCode readExeTextIntoSingleBuffer(const char* fileName, struct CPUInfo* CPUData){
 
-    if (sscanfResult != operationArgsCount) {
-        if (fclose(file) != 0) {
-            printf("Warning: the file wasn't closed");
-        }
+    FILE* file = fopen(fileName, "r");
+    if(file == NULL) return ERR_UNKNOWN;
 
-        debugLog_t debugLogInfo = {};
-        LOG_STRUCT_FORMAT((&debugLogInfo), stk, function, line);
-        debugLogInfo.error = ERR_INVALID_DATA;
-        printErrorIntoConsole(&debugLogInfo);
+    struct stat fileInfo;
+    stat(fileName, &fileInfo);
+    size_t fileSize = fileInfo.st_size;
 
-        return ERR_INVALID_DATA;
+    char* memory = (char*)calloc(fileSize + 1, sizeof(char));
+    if(memory == NULL) return ERR_OUT_OF_MEMORY;
+    CPUData->textOfExeProgram = memory;
+
+    CPUData->textLength = fileSize;
+
+    fread(CPUData->textOfExeProgram, fileSize, 1, file);
+    (CPUData->textOfExeProgram)[fileSize] = '\0';
+
+    if (fclose(file) != 0) {
+        printf("Warning: the file wasn't closed");
     }
 
     return ERR_OK;
-
 }
 
-ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo) {
+ErrorCode recordPtrStringsForExe(struct CPUInfo* CPUData){
 
-    if(debugLogInfo == NULL){
+    if(CPUData == NULL) return ERR_INVALID_ARGUMENT;
+
+    char* text = CPUData->textOfExeProgram;
+    char** programLines = CPUData->programLines;
+    size_t stringsCount = CPUData->stringsCount;
+
+    size_t stringIndex = 0;
+    char* currentPtr = text;
+
+    while(currentPtr != NULL && stringIndex < stringsCount){
+
+        programLines[stringIndex] = currentPtr;
+
+        char* newString = strchr(currentPtr, '\n');
+        if(newString == NULL) break;
+
+        currentPtr = newString + 1;
+        *newString = '\0';
+        stringIndex++;
+    }
+
+    return ERR_OK;
+}
+
+int getRegisterIndex(const char* name) {
+
+    if (strcmp(name, "RAX") == 0) return RAX;
+    if (strcmp(name, "RBX") == 0) return RBX;
+    if (strcmp(name, "RCX") == 0) return RCX;
+    if (strcmp(name, "RDX") == 0) return RDX;
+
+    return -1;
+}
+
+#ifdef CPU_DEBUG
+ErrorCode CPUDump(const struct CPUInfo* CPUData){
+
+    if (CPUData == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
 
-    printf("[%s] Function '%s' was completed with Error %d in file '%s' in line %d \n",
-            debugLogInfo->time,
-            debugLogInfo->function,
-            debugLogInfo->error,
-            debugLogInfo->file,
-            debugLogInfo->line);
+    printf("\nstack_t '%s'[%p] created by %s() at %s:%u\n",
+            CPUData->debugInfo.name,
+            CPUData,
+            CPUData->debugInfo.function,
+            CPUData->debugInfo.file,
+            CPUData->debugInfo.line);
 
-    return ERR_OK;
-}
+    printf("{\n");
 
-void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]){
+    printf("\textLength = %u\n", CPUData->textLength);
+    printf("\tstringsCount = %u    \n", CPUData->stringsCount);
+    printf("\ttextOfExeProgram:  %p \n", CPUData->textOfExeProgram);
 
-    if(argc != 3){
-        printf("Input-Error\n");
-        printf("Type: path, input file, output file.\nPaths must be no longer than %d characters.\n", maxPathLength);
-        exit(1);
-    }
-
-    const char* PATH = "./used-files/";
-
-    sprintf(usedFiles->path, "%s", PATH);
-
-    sprintf(usedFiles->asmProgramFile, "%s%s",
-            PATH, argv[1]);
-
-    sprintf(usedFiles->exeFile, "%s%s",
-            PATH, argv[2]);
-
-    printf("Path:        [%s]\n", usedFiles->path);
-    printf("Input file:  [%s]\n", usedFiles->asmProgramFile);
-    printf("Result file: [%s]\n", usedFiles->exeFile);
-
-    return;
-}
-
-void cancelBuffering(){
-
-    // Abandoning standard buffering since a custom buffer already exists
-    setvbuf(stdout, NULL, _IONBF, 0);
-
-    return;
-}
-
-ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData){
-
-    if(asmProgramData == NULL) return ERR_INVALID_ARGUMENT;
-
-    printf("\nConsole program commands printing:\n");
-    for(size_t i = 0; i < asmProgramData->stringsCount; i++){
-        printf("%s \n", asmProgramData->programLines[i]);
-    }
     putchar('\n');
+
+    printf("\tregisters[%p]{    \n", CPUData->registers);
+
+    for(size_t i = 0; i < REGISTER_COUNT; i++){
+        printf("\t\t%d\n", CPUData->registers[i]);
+    }
+
+    printf("\t}\n\n");
+    putchar('\n');
+
+    STACK_DUMP(CPUData->stack);
+
+    printf("}\n");
+
+    getchar();
+
     return ERR_OK;
 }
-
+#endif

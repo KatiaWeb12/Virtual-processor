@@ -16,28 +16,84 @@ typedef enum {
     MY_CTG = 10,
     MY_BREAK = 11,
     MY_OUT = 12,
-    MY_HLT = 13
+    MY_HLT = 13,
+
+    MY_JMP = 14,
+    MY_JA = 15,
+    MY_JB = 16,
+    MY_JAE = 17,
+    MY_JBE = 18,
+    MY_JE = 19,
+    MY_JNE = 20,
+    MY_JT = 21,
+
+    MY_PUSH_REG = 22,
+    MY_POP_REG = 23
+
 } asmCommand;
+
+enum Register {
+    RAX = 0,
+    RBX = 1,
+    RCX = 2,
+    RDX = 3,
+
+    REGISTER_COUNT = 4
+};
 
 struct files {
         char path[MAX_PATH_LENGTH];
         char asmProgramFile[MAX_PATH_LENGTH];
         char exeFile[MAX_PATH_LENGTH];
-    };
+};
+
+struct asmInstruction {
+    char* commandName;
+    char* arg;
+};
+
+#ifdef CPU_DEBUG
+
+struct debugCPU_t {
+    const char* name;
+    const char* file;
+    const char* function;
+    size_t line;
+};
+
+#endif
 
 struct asmProgramInfo {
     size_t textLength;
     size_t stringsCount;
     char* textOfAsmProgram;
     char** programLines;
+
+    int labels;
+};
+
+struct CPUInfo {
+
+    size_t textLength;
+    size_t stringsCount;
+    char* textOfExeProgram;
+    char** programLines;
+
+    stack_t* stack;
+
+    int registers[REGISTER_COUNT];
+    size_t IP;
+
+    #ifdef CPU_DEBUG
+        debugCPU_t debugInfo;
+    #endif
 };
 
 // Prototypes
-ErrorCode readTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData);
+ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData);
 ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData);
-ErrorCode recordPtrStrings(struct asmProgramInfo* asmProgramData);
+ErrorCode recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData);
 ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData);
-ErrorCode CPUexecute(char* fileName, stack_t* stack);
 ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount);
 size_t calculateStringsCount(const char* text);
 void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
@@ -48,12 +104,27 @@ ErrorCode openFile(char* fileName, const char mode);
 ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo);
 ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line);
 
-ErrorCode addCommand(struct stack_t* stack);
-ErrorCode subCommand(struct stack_t* stack);
-ErrorCode mulCommand(struct stack_t* stack);
-ErrorCode divCommand(struct stack_t* stack);
-ErrorCode squareCommand(struct stack_t* stack);
-ErrorCode sinCommand(struct stack_t* stack);
-ErrorCode cosCommand(struct stack_t* stack);
-ErrorCode tgCommand(struct stack_t* stack);
-ErrorCode ctgCommand(struct stack_t* stack);
+// Processor
+
+ErrorCode readExeProgram(const char* fileName, struct CPUInfo* CPUData);
+ErrorCode readExeTextIntoSingleBuffer(const char* fileName, struct CPUInfo* CPUData);
+ErrorCode recordPtrStringsForExe(struct CPUInfo* CPUData);
+ErrorCode CPUexecute(char* fileName, CPUInfo* CPUData);
+
+int getRegisterIndex(const char* name);
+
+
+#ifdef CPU_DEBUG
+    ErrorCode CPUDump(const CPUInfo* CPUData);
+#endif
+
+
+//Macro
+#ifdef CPU_DEBUG
+    #define CPU_DUMP(cpu) CPUDump(cpu)
+#else
+    #define CPU_DUMP(cpu) ((void)0)
+#endif
+
+
+
