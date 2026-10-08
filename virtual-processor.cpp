@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "../universal-features/error.h"
+#include "../universal-features/colors.h"
 #include "../Task5 stack/stack.cpp"
 #include "virtual-processor.h"
 #include "math-functions.cpp"
@@ -19,6 +20,7 @@ int main(int argc, char* argv[]){
     struct files usedFiles = {};
     setFileNames(&usedFiles, MAX_PATH_LENGTH, argc, argv);
 
+    // Assembler
     struct asmProgramInfo asmProgramData = {};
 
     char** memory = (char**)calloc(MAX_COMMAND_LENGTH, sizeof(char*));
@@ -27,20 +29,14 @@ int main(int argc, char* argv[]){
     asmProgramData.programLines = memory;
 
     readAsmProgram(usedFiles.asmProgramFile, &asmProgramData);
-
     consoleProgramOutput(&asmProgramData);
-
     assembler(usedFiles.exeFile, &asmProgramData);
 
+    //Processor
+    struct CPUInfo CPUData = {};
     struct stack_t stk = {};
-    ErrorCode error = STACK_INIT(&stk, 3);
-    if(error){
-        printf("The function stackInit was completed with an error code: %d\n", error);
-        return error;
-    }
 
-    CPUInfo CPUData = {};
-    CPUData.stack = &stk;
+    CPULoad(&CPUData, &stk, usedFiles.exeFile);
 
     #ifdef CPU_DEBUG
         CPUData.debugInfo = {
@@ -53,9 +49,28 @@ int main(int argc, char* argv[]){
 
     CPUexecute(usedFiles.exeFile, &CPUData);
 
+    CPUDestroy(&CPUData);
 
     return 0;
 }
+
+size_t calculateStringsCount(const char* text){
+
+    size_t stringCount = 0;
+    const char* symbolPtr = text;
+
+    while(*symbolPtr){
+        if(*symbolPtr == '\n'){
+            stringCount++;
+        }
+        symbolPtr++;
+    }
+
+    return stringCount;
+}
+
+
+// Assembler
 
 ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData){
 
@@ -119,21 +134,6 @@ ErrorCode recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData){
     return ERR_OK;
 }
 
-size_t calculateStringsCount(const char* text){
-
-    size_t stringCount = 0;
-    const char* symbolPtr = text;
-
-    while(*symbolPtr){
-        if(*symbolPtr == '\n'){
-            stringCount++;
-        }
-        symbolPtr++;
-    }
-
-    return stringCount;
-}
-
 ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
 
     if(asmProgramData == NULL) return ERR_INVALID_ARGUMENT;
@@ -144,15 +144,10 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
 
     for(size_t i = 0; i < asmProgramData->stringsCount; i++){
 
-        struct asmInstruction command = {};
-
         char commandName[MAX_COMMAND_LENGTH];
         char argument[MAX_COMMAND_LENGTH];
 
         int sscanfResult = sscanf((asmProgramData->programLines)[i], "%299s %299s", commandName, argument);
-
-        command.commandName = commandName;
-        command.arg = argument;
 
         if(sscanfResult == 0) continue;
 
@@ -298,6 +293,123 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
     return ERR_OK;
 }
 
+// Processor
+
+ErrorCode readExeProgram(const char* fileName, CPUInfo* CPUData){
+
+    readExeTextIntoSingleBuffer(fileName, CPUData);
+    CPUData->stringsCount = calculateStringsCount(CPUData->textOfExeProgram);
+    recordPtrStringsForExe(CPUData);
+
+    return ERR_OK;
+
+}
+
+ErrorCode readExeTextIntoSingleBuffer(const char* fileName, CPUInfo* CPUData){
+
+    FILE* file = fopen(fileName, "r");
+    if(file == NULL) return ERR_UNKNOWN;
+
+    struct stat fileInfo;
+    stat(fileName, &fileInfo);
+    size_t fileSize = fileInfo.st_size;
+
+    char* memory = (char*)calloc(fileSize + 1, sizeof(char));
+    if(memory == NULL) return ERR_OUT_OF_MEMORY;
+    CPUData->textOfExeProgram = memory;
+
+    CPUData->textLength = fileSize;
+
+    fread(CPUData->textOfExeProgram, fileSize, 1, file);
+    (CPUData->textOfExeProgram)[fileSize] = '\0';
+
+    if (fclose(file) != 0) {
+        printf("Warning: the file wasn't closed");
+    }
+
+    return ERR_OK;
+}
+
+ErrorCode recordPtrStringsForExe(CPUInfo* CPUData){
+
+    if(CPUData == NULL) return ERR_INVALID_ARGUMENT;
+
+    char* text = CPUData->textOfExeProgram;
+    char** programLines = CPUData->programLines;
+    size_t stringsCount = CPUData->stringsCount;
+
+    size_t stringIndex = 0;
+    char* currentPtr = text;
+
+    while(currentPtr != NULL && stringIndex < stringsCount){
+
+        programLines[stringIndex] = currentPtr;
+
+        char* newString = strchr(currentPtr, '\n');
+        if(newString == NULL) break;
+
+        currentPtr = newString + 1;
+        stringIndex++;
+        *newString = '\0';
+    }
+
+    return ERR_OK;
+}
+
+ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile){
+
+    char** memory = (char**)calloc(MAX_COMMAND_LENGTH, sizeof(char*));
+    if (memory == NULL) return ERR_OUT_OF_MEMORY;
+
+    CPUData->programLines = memory;
+
+    readExeProgram(exeProgramFile, CPUData);
+
+    ErrorCode error = STACK_INIT(stk, 3);
+    if(error){
+        printf("The function stackInit was completed with an error code: %d\n", error);
+        return error;
+    }
+
+    CPUData->stack = stk;
+    CPUData->IP = 0;
+
+    return ERR_OK;
+}
+
+ErrorCode CPUDestroy(CPUInfo* CPUData)
+{
+
+    CPU_DUMP(CPUData, CPUData->stringsCount-1);
+
+    cleanRegister(CPUData);
+    stackDestroy(CPUData->stack);
+
+    char* dataMemory = (char*)CPUData->programLines;
+    free(dataMemory);
+
+    CPUData->textLength = 0;
+    CPUData->stringsCount = 0;
+    CPUData->IP = 0;
+    CPUData->textOfExeProgram = NULL;
+    CPUData->programLines = NULL;
+
+    printf(COLOR_RED "%s \n" COLOR_RESET, "CPU was destroyed");
+
+    return ERR_OK;
+
+};
+
+ErrorCode cleanRegister(CPUInfo* CPUData){
+
+    for(size_t i = 0; i < REGISTER_COUNT; i++){
+        (CPUData->registers)[i] = -1;
+    }
+
+    return ERR_OK;
+
+}
+
 ErrorCode CPUexecute(char* fileName, CPUInfo* CPUData){
 
     FILE* file = fopen(fileName, "r");
@@ -307,6 +419,8 @@ ErrorCode CPUexecute(char* fileName, CPUInfo* CPUData){
 
     int command = 0;
     int arg = 0;
+
+    size_t currentLine = 0; // for DUMP
 
     while (command != MY_HLT) {
 
@@ -474,7 +588,6 @@ ErrorCode CPUexecute(char* fileName, CPUInfo* CPUData){
 
                 stackElem_t value = 0;
                 stackPop(CPUData->stack, &value);
-                stackPush(CPUData->stack, value);
                 printf("\nRESULT: %d \n", (stackElem_t)((double)(value) / 1000));
 
                 break;
@@ -545,75 +658,12 @@ ErrorCode CPUexecute(char* fileName, CPUInfo* CPUData){
             }
         }
 
-        CPU_DUMP(CPUData);
+        CPU_DUMP(CPUData, currentLine);
+        currentLine++;
 
     }
 
     return ERR_INVALID_DATA;
-}
-
-
-// Processor
-
-ErrorCode readExeProgram(const char* fileName, struct CPUInfo* CPUData){
-
-    readExeTextIntoSingleBuffer(fileName, CPUData);
-    CPUData->stringsCount = calculateStringsCount(CPUData->textOfExeProgram);
-    recordPtrStringsForExe(CPUData);
-
-    return ERR_OK;
-
-}
-
-ErrorCode readExeTextIntoSingleBuffer(const char* fileName, struct CPUInfo* CPUData){
-
-    FILE* file = fopen(fileName, "r");
-    if(file == NULL) return ERR_UNKNOWN;
-
-    struct stat fileInfo;
-    stat(fileName, &fileInfo);
-    size_t fileSize = fileInfo.st_size;
-
-    char* memory = (char*)calloc(fileSize + 1, sizeof(char));
-    if(memory == NULL) return ERR_OUT_OF_MEMORY;
-    CPUData->textOfExeProgram = memory;
-
-    CPUData->textLength = fileSize;
-
-    fread(CPUData->textOfExeProgram, fileSize, 1, file);
-    (CPUData->textOfExeProgram)[fileSize] = '\0';
-
-    if (fclose(file) != 0) {
-        printf("Warning: the file wasn't closed");
-    }
-
-    return ERR_OK;
-}
-
-ErrorCode recordPtrStringsForExe(struct CPUInfo* CPUData){
-
-    if(CPUData == NULL) return ERR_INVALID_ARGUMENT;
-
-    char* text = CPUData->textOfExeProgram;
-    char** programLines = CPUData->programLines;
-    size_t stringsCount = CPUData->stringsCount;
-
-    size_t stringIndex = 0;
-    char* currentPtr = text;
-
-    while(currentPtr != NULL && stringIndex < stringsCount){
-
-        programLines[stringIndex] = currentPtr;
-
-        char* newString = strchr(currentPtr, '\n');
-        if(newString == NULL) break;
-
-        currentPtr = newString + 1;
-        *newString = '\0';
-        stringIndex++;
-    }
-
-    return ERR_OK;
 }
 
 int getRegisterIndex(const char* name) {
@@ -627,7 +677,7 @@ int getRegisterIndex(const char* name) {
 }
 
 #ifdef CPU_DEBUG
-ErrorCode CPUDump(const struct CPUInfo* CPUData){
+ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
 
     if (CPUData == NULL) {
         return ERR_INVALID_ARGUMENT;
@@ -642,9 +692,20 @@ ErrorCode CPUDump(const struct CPUInfo* CPUData){
 
     printf("{\n");
 
-    printf("\textLength = %u\n", CPUData->textLength);
-    printf("\tstringsCount = %u    \n", CPUData->stringsCount);
-    printf("\ttextOfExeProgram:  %p \n", CPUData->textOfExeProgram);
+    printf("\ttextLength = %u \n", CPUData->textLength);
+    printf("\tstringsCount = %u \n", CPUData->stringsCount);
+
+    printf("\ttextOfExeProgram[%p]: ", CPUData->textOfExeProgram);
+
+    for (size_t i = 0; i < CPUData->stringsCount; i++) {
+
+        if (i == currentLine) {
+            printf(COLOR_RED "%s" COLOR_RESET " | ", CPUData->programLines[i]);
+        }
+        else {
+            printf(" %s | ", CPUData->programLines[i]);
+        }
+    }
 
     putchar('\n');
 

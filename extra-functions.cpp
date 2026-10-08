@@ -95,7 +95,7 @@ ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData){
 
     if(asmProgramData == NULL) return ERR_INVALID_ARGUMENT;
 
-    printf("\nConsole program commands printing:\n");
+    printf("\nConsole ASM-program printing:\n");
     for(size_t i = 0; i < asmProgramData->stringsCount; i++){
         printf("%s \n", asmProgramData->programLines[i]);
     }

@@ -47,11 +47,6 @@ struct files {
         char exeFile[MAX_PATH_LENGTH];
 };
 
-struct asmInstruction {
-    char* commandName;
-    char* arg;
-};
-
 #ifdef CPU_DEBUG
 
 struct debugCPU_t {
@@ -110,20 +105,23 @@ ErrorCode readExeProgram(const char* fileName, struct CPUInfo* CPUData);
 ErrorCode readExeTextIntoSingleBuffer(const char* fileName, struct CPUInfo* CPUData);
 ErrorCode recordPtrStringsForExe(struct CPUInfo* CPUData);
 ErrorCode CPUexecute(char* fileName, CPUInfo* CPUData);
+ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile);
+ErrorCode cleanRegister(CPUInfo* CPUData);
+ErrorCode CPUDestroy(CPUInfo* CPUData);
 
 int getRegisterIndex(const char* name);
 
 
 #ifdef CPU_DEBUG
-    ErrorCode CPUDump(const CPUInfo* CPUData);
+    ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine);
 #endif
 
 
 //Macro
 #ifdef CPU_DEBUG
-    #define CPU_DUMP(cpu) CPUDump(cpu)
+    #define CPU_DUMP(cpu, line) CPUDump((cpu), (line))
 #else
-    #define CPU_DUMP(cpu) ((void)0)
+    #define CPU_DUMP(cpu, line) ((void)0)
 #endif
 
 
