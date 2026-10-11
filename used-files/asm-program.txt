@@ -1,13 +1,22 @@
 PUSH 1
 POP RAX
+
+:next
+PUSH RAX
+PUSH 10
+JA :end
+
 PUSH RAX
 PUSH RAX
 MUL
 OUT
+
 PUSH RAX
 PUSH 1
 ADD
 POP RAX
-PUSH RAX
-OUT
+
+JMP :next
+
+:end
 HLT

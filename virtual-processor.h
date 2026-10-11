@@ -1,6 +1,7 @@
 // Constants
 const size_t MAX_PATH_LENGTH = 300;
 const size_t MAX_COMMAND_LENGTH = 300;
+const size_t START_LABEL_COUNT = 5;
 
 // Types
 typedef enum {
@@ -28,8 +29,7 @@ typedef enum {
     MY_JT = 21,
 
     MY_PUSH_REG = 22,
-    MY_POP_REG = 23
-
+    MY_POP_REG = 23,
 } asmCommand;
 
 enum Register {
@@ -58,13 +58,24 @@ struct debugCPU_t {
 
 #endif
 
+struct labelItem {
+    char* labelName;
+    int labelValue;
+};
+
+struct label {
+    size_t labelCapacity;
+    size_t labelCount;
+    labelItem* labelArr;
+};
+
 struct asmProgramInfo {
     size_t textLength;
     size_t stringsCount;
     char* textOfAsmProgram;
     char** programLines;
 
-    int labels;
+    label* labels;
 };
 
 struct CPUInfo {
@@ -85,19 +96,28 @@ struct CPUInfo {
 };
 
 // Prototypes
-ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData);
+
+// Assembler
+
+ErrorCode asmLoad(asmProgramInfo* asmData, char* asmProgramFile);
 ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData);
+ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData);
 ErrorCode recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData);
 ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData);
-ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount);
-size_t calculateStringsCount(const char* text);
-void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
-void cancelBuffering();
-ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData);
-double degreesToRadians(double degrees);
-ErrorCode openFile(char* fileName, const char mode);
-ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo);
-ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line);
+bool commandCondition (const char* commandName);
+
+//Labels
+
+ErrorCode loadLabels(label* labels);
+ErrorCode addLabel(label* labels, char* name, int address);
+int findLabel(const label* labels, const char* name);
+ErrorCode collectLabels(asmProgramInfo* asmData);
+ErrorCode resizeLabels(label* labels, int direction);
+
+
+// Disassembler
+
+ErrorCode disassembler(files* usedFiles);
 
 // Processor
 
@@ -109,6 +129,34 @@ ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile);
 ErrorCode cleanRegister(CPUInfo* CPUData);
 ErrorCode CPUDestroy(CPUInfo* CPUData);
 
+// Extra functions
+
+ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount);
+ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line);
+ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo);
+ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData);
+
+void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
+void cancelBuffering();
+size_t calculateStringsCount(const char* text);
+
+int getWeekday();
+bool ifTuesday();
+
+// Math functions
+
+ErrorCode addCommand(struct stack_t* stack);
+ErrorCode subCommand(struct stack_t* stack);
+ErrorCode mulCommand(struct stack_t* stack);
+ErrorCode divCommand(struct stack_t* stack);
+ErrorCode squareCommand(struct stack_t* stack);
+ErrorCode sinCommand(struct stack_t* stack);
+ErrorCode cosCommand(struct stack_t* stack);
+ErrorCode tgCommand(struct stack_t* stack);
+ErrorCode ctgCommand(struct stack_t* stack);
+double degreesToRadians(double degrees);
+
+
 int getRegisterIndex(const char* name);
 
 
@@ -118,11 +166,20 @@ int getRegisterIndex(const char* name);
 
 
 //Macro
+
 #ifdef CPU_DEBUG
     #define CPU_DUMP(cpu, line) CPUDump((cpu), (line))
 #else
     #define CPU_DUMP(cpu, line) ((void)0)
 #endif
+
+
+#define FCLOSE(file)                                      \
+    do {                                                  \
+        if (fclose(file) != 0) {                          \
+            printf("Warning: the file wasn't closed\n");  \
+        }                                                 \
+    } while (0)                                           \
 
 
 

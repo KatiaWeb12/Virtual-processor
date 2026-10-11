@@ -2,17 +2,6 @@
 
 #include "../universal-features/error.h"
 
-ErrorCode addCommand(struct stack_t* stack);
-ErrorCode subCommand(struct stack_t* stack);
-ErrorCode mulCommand(struct stack_t* stack);
-ErrorCode divCommand(struct stack_t* stack);
-ErrorCode squareCommand(struct stack_t* stack);
-ErrorCode sinCommand(struct stack_t* stack);
-ErrorCode cosCommand(struct stack_t* stack);
-ErrorCode tgCommand(struct stack_t* stack);
-ErrorCode ctgCommand(struct stack_t* stack);
-
-
 double degreesToRadians(double degrees) {
 
     return degrees * M_PI / 180.0;

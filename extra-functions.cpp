@@ -2,17 +2,7 @@
 
 #include "../universal-features/error.h"
 
-int getWeekday();
-
-int getWeekday(){
-
-    time_t currentTime = time(NULL);
-    struct tm* date = localtime(&currentTime);
-
-    int weekday = date->tm_wday;
-
-    return weekday;
-}
+// Error-processing and debugging
 
 ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount){
 
@@ -58,6 +48,41 @@ ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo) {
     return ERR_OK;
 }
 
+ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData){
+
+    if(asmProgramData == NULL) return ERR_INVALID_ARGUMENT;
+
+    printf("-----------------\nConsole ASM-program printing:\n");
+    for(size_t i = 0; i < asmProgramData->stringsCount; i++){
+        printf("%s \n", asmProgramData->programLines[i]);
+    }
+    printf("-----------------\n\n");
+    return ERR_OK;
+}
+
+// Preparing functions
+
+size_t calculateStringsCount(const char* text) {
+
+    if (text == NULL || *text == '\0') {
+        return 0;
+    }
+
+    size_t stringCount = 0;
+
+    for (const char* ptr = text; *ptr != '\0'; ptr++) {
+        if (*ptr == '\n') {
+            stringCount++;
+        }
+    }
+
+    if (text[strlen(text) - 1] != '\n') {
+        stringCount++;
+    }
+
+    return stringCount;
+}
+
 void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]){
 
     if(argc != 3){
@@ -91,14 +116,18 @@ void cancelBuffering(){
     return;
 }
 
-ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData){
+// Time
 
-    if(asmProgramData == NULL) return ERR_INVALID_ARGUMENT;
+int getWeekday(){
 
-    printf("\nConsole ASM-program printing:\n");
-    for(size_t i = 0; i < asmProgramData->stringsCount; i++){
-        printf("%s \n", asmProgramData->programLines[i]);
-    }
-    putchar('\n');
-    return ERR_OK;
+    time_t currentTime = time(NULL);
+    struct tm* date = localtime(&currentTime);
+
+    int weekday = date->tm_wday;
+
+    return weekday;
+}
+
+bool ifTuesday(){
+    return getWeekday() == 2;
 }
