@@ -67,7 +67,7 @@ ErrorCode divCommand(stack_t* stack){
     stackPop(stack, &value1);
     stackPop(stack, &value2);
 
-    double result = (double)value2 / (double)value1;
+    double result = (double)value1 / (double)value2;
 
     stackPush(stack, (stackElem_t)(result * 1000));
 

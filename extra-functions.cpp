@@ -16,9 +16,8 @@ ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount){
 ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line){
 
     if (sscanfResult != operationArgsCount) {
-        if (fclose(file) != 0) {
-            printf("Warning: the file wasn't closed");
-        }
+
+        FCLOSE(file);
 
         debugLog_t debugLogInfo = {};
         LOG_STRUCT_FORMAT((&debugLogInfo), stk, function, line);

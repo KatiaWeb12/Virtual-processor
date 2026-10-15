@@ -2,13 +2,12 @@ PUSH 1
 POP RAX
 
 :next
-PUSH RAX
 PUSH 10
+PUSH RAX
 JA :end
 
 PUSH RAX
-PUSH RAX
-MUL
+CALL :square
 OUT
 
 PUSH RAX
@@ -20,3 +19,10 @@ JMP :next
 
 :end
 HLT
+
+:square
+POP RBX
+PUSH RBX
+PUSH RBX
+MUL
+RET

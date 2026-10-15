@@ -1,5 +1,9 @@
 #include "../universal-features/error.h"
 
+#define BG_RED "\033[41m"
+
+const int MAX_CALL_DEPTH = 256;
+
 ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile){
 
     char** memory = (char**)calloc(MAX_COMMAND_LENGTH, sizeof(char*));
@@ -16,6 +20,13 @@ ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile){
     }
 
     CPUData->stack = stk;
+
+    error = STACK_INIT(&CPUData->returnAddresses, 3);
+    if (error != ERR_OK) {
+        printf("The function stackInit was completed with an error code: %d\n", error);
+        return error;
+    }
+
     CPUData->IP = 0;
 
     return ERR_OK;
@@ -79,10 +90,7 @@ ErrorCode recordPtrStringsForExe(CPUInfo* CPUData){
     return ERR_OK;
 }
 
-ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
-
-    FILE* file = fopen(exeFile, "r");
-    if(file == NULL) return ERR_UNKNOWN;
+ErrorCode CPUexecute(CPUInfo* CPUData){
 
     int command = 0;
     int arg = 0;
@@ -105,7 +113,6 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -118,7 +125,6 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -131,7 +137,6 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -144,7 +149,6 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -157,7 +161,7 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
+
                     return ERR_INVALID_DATA;
                 }
 
@@ -170,7 +174,6 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -183,7 +186,6 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -196,7 +198,6 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -209,7 +210,6 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
 
                 if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -223,11 +223,17 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
                 break;
             }
 
+            case MY_IN:{
+
+                consoleInput(CPUData);
+
+                break;
+            }
+
             case MY_OUT:{
 
                 if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
                     printf("ERROR: not enough elements in stack\n");
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
@@ -240,18 +246,15 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
             case MY_HLT: {
 
                 printf("\nProgram ended\n");
-                FCLOSE(file);
                 return ERR_OK;
             }
             case MY_JMP: {
 
                 if (sscanfResult != 2) {
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
                 if (arg < 0 || (size_t)arg >= CPUData->stringsCount) {
-                    FCLOSE(file);
                     return ERR_OUT_OF_BOUNDS;
                 }
                 #ifdef CPU_DEBUG
@@ -264,13 +267,11 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
             case MY_PUSH_REG: {
 
                 if (arg < 0 || arg >= REGISTER_COUNT) {
-                    FCLOSE(file);
                     return ERR_INVALID_ARGUMENT;
                 }
 
                 ErrorCode error = stackPush(CPUData->stack, CPUData->registers[arg]);
                 if (error != ERR_OK) {
-                    FCLOSE(file);
                     return error;
                 }
 
@@ -279,19 +280,16 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
             case MY_POP_REG: {
 
                 if (arg < 0 || arg >= REGISTER_COUNT) {
-                    FCLOSE(file);
                     return ERR_INVALID_ARGUMENT;
                 }
 
                 if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
                 ErrorCode error = stackPop(CPUData->stack, &(CPUData->registers[arg]));
 
                 if (error != ERR_OK) {
-                    FCLOSE(file);
                     return error;
                 }
 
@@ -305,41 +303,24 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
             case MY_JNE: {
 
                 if (sscanfResult != 2) {
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
                 if (arg < 0 || (size_t)arg >= CPUData->stringsCount) {
-                    FCLOSE(file);
                     return ERR_OUT_OF_BOUNDS;
                 }
 
                 if (checkStackBeforeOperation(CPUData->stack, 2) != ERR_OK) {
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
 
                 stackElem_t el2 = 0;
                 stackElem_t el1 = 0;
 
-                stackPop(CPUData->stack, &el2);
                 stackPop(CPUData->stack, &el1);
+                stackPop(CPUData->stack, &el2);
 
-                bool jump = false;
-
-                switch (command) {
-
-                    case MY_JA:  jump = (el1 >  el2); break;
-                    case MY_JB:  jump = (el1 <  el2); break;
-                    case MY_JAE: jump = (el1 >= el2); break;
-                    case MY_JBE: jump = (el1 <= el2); break;
-                    case MY_JE:  jump = (el1 == el2); break;
-                    case MY_JNE: jump = (el1 != el2); break;
-                    default: break;
-
-                }
-
-                if (jump) {
+                if (jumpType(el1, el2, command)) {
                     CPU_DUMP(CPUData, CPUData->IP);
                     CPUData->IP = (size_t)arg;
                     continue;
@@ -350,11 +331,9 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
             case MY_JT: {
 
                 if (sscanfResult != 2) {
-                    FCLOSE(file);
                     return ERR_INVALID_DATA;
                 }
                 if (arg < 0 || (size_t)arg >= CPUData->stringsCount) {
-                    FCLOSE(file);
                     return ERR_OUT_OF_BOUNDS;
                 }
                 bool jump = ifTuesday();
@@ -366,10 +345,36 @@ ErrorCode CPUexecute(char* exeFile, CPUInfo* CPUData){
                 }
                 break;
             }
+            case MY_CALL: {
+
+                if (sscanfResult != 2) return ERR_INVALID_DATA;
+                if (arg < 0 || (size_t)arg >= CPUData->stringsCount) return ERR_OUT_OF_BOUNDS;
+
+                ErrorCode error = stackPush(&CPUData->returnAddresses, (stackElem_t)(CPUData->IP + 1));
+                if (error != ERR_OK) return error;
+
+                CPUData->IP = (size_t)arg;
+                continue;
+            }
+            case MY_RET: {
+
+                if (checkStackBeforeOperation(&CPUData->returnAddresses, 1) != ERR_OK) {
+                    printf("ERROR: return stack is empty\n");
+                    return ERR_INVALID_DATA;
+                }
+
+                stackElem_t returnAddress = 0;
+
+                ErrorCode error = stackPop(&CPUData->returnAddresses, &returnAddress);
+                if (error != ERR_OK) return error;
+
+                CPUData->IP = (size_t)returnAddress;
+
+                continue;
+            }
             default:{
 
                 printf("Unknown command: %d\n", command);
-                FCLOSE(file);
                 return ERR_INVALID_DATA;
 
             }
@@ -390,6 +395,7 @@ ErrorCode CPUDestroy(CPUInfo* CPUData)
 
     cleanRegister(CPUData);
     stackDestroy(CPUData->stack);
+    stackDestroy(&CPUData->returnAddresses);
 
     char* dataMemory = (char*)CPUData->programLines;
     free(dataMemory);
@@ -427,4 +433,87 @@ int getRegisterIndex(const char* name) {
     return -1;
 }
 
+ErrorCode consoleInput(CPUInfo* CPUData){
 
+    if(CPUData == NULL || CPUData->stack == NULL) return ERR_INVALID_ARGUMENT;
+
+    int consoleArg = 0;
+    printf("Enter the value: ");
+    scanf("%d", &consoleArg);
+
+    stackPush(CPUData->stack, consoleArg*1000);
+
+    return ERR_OK;
+}
+
+bool jumpType(int el1, int el2, int command){
+
+    bool jump = false;
+
+    switch (command) {
+
+        case MY_JA:  jump = (el1 >  el2); break;
+        case MY_JB:  jump = (el1 <  el2); break;
+        case MY_JAE: jump = (el1 >= el2); break;
+        case MY_JBE: jump = (el1 <= el2); break;
+        case MY_JE:  jump = (el1 == el2); break;
+        case MY_JNE: jump = (el1 != el2); break;
+        default: break;
+    }
+
+    return jump;
+}
+
+#ifdef CPU_DEBUG
+ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
+
+    if (CPUData == NULL) {
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    printf("\nCPUInfo '%s'[%p] created by %s() at %s:%u\n",
+            CPUData->debugInfo.name,
+            CPUData,
+            CPUData->debugInfo.function,
+            CPUData->debugInfo.file,
+            CPUData->debugInfo.line);
+
+    printf("{\n");
+
+    printf("\ttextLength = %u \n", CPUData->textLength);
+    printf("\tstringsCount = %u \n", CPUData->stringsCount);
+
+    printf("\ttextOfExeProgram[%p]: ", CPUData->textOfExeProgram);
+
+    for (size_t i = 0; i < CPUData->stringsCount; i++) {
+
+        if (i == currentLine) {
+            printf(BG_RED " %s " COLOR_RESET "|", CPUData->programLines[i]);
+        }
+        else {
+            printf(" %s | ", CPUData->programLines[i]);
+        }
+    }
+
+    putchar('\n');
+
+    printf("\tregisters[%p]{    \n", CPUData->registers);
+
+    for(size_t i = 0; i < REGISTER_COUNT; i++){
+        printStackElem(i, (CPUData->registers)[i]);
+    }
+
+    printf("\t}\n\n");
+    putchar('\n');
+
+    printf("\tIP = %u \n", CPUData->IP);
+
+    STACK_DUMP(CPUData->stack);
+
+    printf("}\n");
+
+    getchar();
+
+    return ERR_OK;
+}
+#endif

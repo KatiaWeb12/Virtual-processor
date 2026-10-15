@@ -176,6 +176,22 @@ ErrorCode disassembler(files* usedFiles) {
                 break;
             }
 
+            case MY_CALL: {
+
+                if (sscanfResult != 2) {
+                    goto disassemblerError;
+                }
+
+                fprintf(asmFile, "CALL :%d\n", argument);
+                break;
+            }
+
+            case MY_RET: {
+
+                fprintf(asmFile, "RET\n");
+                break;
+            }
+
             default: {
 
                 printf("Unknown command: %d\n", command);

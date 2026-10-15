@@ -213,6 +213,13 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
 
             fprintf(file, "%d\n", MY_BREAK);
         }
+        else if (strcmp(commandName, "IN") == 0) {
+
+            ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+
+            fprintf(file, "%d\n", MY_IN);
+        }
         else if (strcmp(commandName, "OUT") == 0) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
@@ -243,6 +250,26 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
 
             fprintf(file, "%d %d\n", MY_JMP, address);
         }
+        else if (strcmp(commandName, "CALL") == 0) {
+
+            error = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
+            if (error != ERR_OK) return error;
+
+            int address = findLabel(asmProgramData->labels, argument);
+
+            if (address == -1) {
+                printf("Unknown label: %s\n", argument);
+                FCLOSE(file);
+                return ERR_NOT_FOUND;
+            }
+
+            fprintf(file, "%d %d\n", MY_CALL, address);
+        }
+
+        else if (strcmp(commandName, "RET") == 0) {
+
+            fprintf(file, "%d\n", MY_RET);
+        }
         else if (commandCondition (commandName)) {
 
             error = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
@@ -259,7 +286,7 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
 
             int command = 0;
 
-            if      (strcmp(commandName, "JA")  == 0) command = MY_JA;
+            if (strcmp(commandName, "JA")  == 0) command = MY_JA;
             else if (strcmp(commandName, "JB")  == 0) command = MY_JB;
             else if (strcmp(commandName, "JAE") == 0) command = MY_JAE;
             else if (strcmp(commandName, "JBE") == 0) command = MY_JBE;
@@ -279,6 +306,25 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
 
     FCLOSE(file);
     return ERR_OK;
+}
+
+bool commandCondition (const char* commandName){
+    return strcmp(commandName, "JA")  == 0 ||
+         strcmp(commandName, "JB")  == 0 ||
+         strcmp(commandName, "JAE") == 0 ||
+         strcmp(commandName, "JBE") == 0 ||
+         strcmp(commandName, "JE")  == 0 ||
+         strcmp(commandName, "JNE") == 0;
+}
+void removeAsmComment(char* line) {
+
+    if (line == NULL) return;
+
+    char* comment = strchr(line, ';');
+
+    if (comment != NULL) {
+        *comment = '\0';
+    }
 }
 
 // Labels
@@ -312,6 +358,8 @@ ErrorCode collectLabels(asmProgramInfo* asmData) {
     for (size_t i = 0; i < asmData->stringsCount; i++) {
 
         char* line = asmData->programLines[i]; // The line to go to
+
+        removeAsmComment(line);
 
         while (*line == ' ' || *line == '\t' || *line == '\r') {
             line++;
@@ -425,16 +473,9 @@ ErrorCode resizeLabels(label* labels, int direction){
 
     }
 
-    printf(COLOR_RED "%s" COLOR_RESET, "\nLabelArr resize\n");
+    #ifdef CPU_DEBUG
+    printf(COLOR_RED "%s" COLOR_RESET, "\nLabel array resize\n");
+    #endif
 
     return ERR_OK;
-}
-
-bool commandCondition (const char* commandName){
-    return strcmp(commandName, "JA")  == 0 ||
-         strcmp(commandName, "JB")  == 0 ||
-         strcmp(commandName, "JAE") == 0 ||
-         strcmp(commandName, "JBE") == 0 ||
-         strcmp(commandName, "JE")  == 0 ||
-         strcmp(commandName, "JNE") == 0;
 }

@@ -16,20 +16,24 @@ typedef enum {
     MY_TG = 9,
     MY_CTG = 10,
     MY_BREAK = 11,
-    MY_OUT = 12,
-    MY_HLT = 13,
+    MY_IN = 12,
+    MY_OUT = 13,
+    MY_HLT = 14,
 
-    MY_JMP = 14,
-    MY_JA = 15,
-    MY_JB = 16,
-    MY_JAE = 17,
-    MY_JBE = 18,
-    MY_JE = 19,
-    MY_JNE = 20,
-    MY_JT = 21,
+    MY_JMP = 15,
+    MY_JA = 16,
+    MY_JB = 17,
+    MY_JAE = 18,
+    MY_JBE = 19,
+    MY_JE = 20,
+    MY_JNE = 21,
+    MY_JT = 22,
 
-    MY_PUSH_REG = 22,
-    MY_POP_REG = 23,
+    MY_PUSH_REG = 23,
+    MY_POP_REG = 24,
+
+    MY_CALL = 25,
+    MY_RET = 26
 } asmCommand;
 
 enum Register {
@@ -90,6 +94,8 @@ struct CPUInfo {
     int registers[REGISTER_COUNT];
     size_t IP;
 
+    stack_t returnAddresses;
+
     #ifdef CPU_DEBUG
         debugCPU_t debugInfo;
     #endif
@@ -105,6 +111,7 @@ ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInf
 ErrorCode recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData);
 ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData);
 bool commandCondition (const char* commandName);
+void removeAsmComment(char* line);
 
 //Labels
 
@@ -124,10 +131,12 @@ ErrorCode disassembler(files* usedFiles);
 ErrorCode readExeProgram(const char* fileName, struct CPUInfo* CPUData);
 ErrorCode readExeTextIntoSingleBuffer(const char* fileName, struct CPUInfo* CPUData);
 ErrorCode recordPtrStringsForExe(struct CPUInfo* CPUData);
-ErrorCode CPUexecute(char* fileName, CPUInfo* CPUData);
+ErrorCode CPUexecute(CPUInfo* CPUData);
 ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile);
 ErrorCode cleanRegister(CPUInfo* CPUData);
 ErrorCode CPUDestroy(CPUInfo* CPUData);
+ErrorCode consoleInput(CPUInfo* CPUData);
+bool jumpType(int el1, int el2, int command);
 
 // Extra functions
 
