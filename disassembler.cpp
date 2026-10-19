@@ -1,84 +1,38 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <vector>
-#include <string>
+#include <stdint.h>
 
-#include "../universal-features/error.h"
+#include "virtual-processor.h"
 
-struct disasmInstruction {
-    int opcode;
-    int flags;
-    int reg;
-    int imm;
-};
+int main(int argc, char* argv[]) {
 
-bool parseDisasmLine(const char* line, disasmInstruction* out) {
-
-    int n = 0;
-
-    if (sscanf(line, " %d%n", &out->opcode, &n) != 1)
-        return false;
-
-    const char* rest = line + n;
-    int consumed = 0;
-
-    if (out->opcode == MY_PUSH || out->opcode == MY_POP) {
-
-        if (sscanf(rest, " %d %d %d %n",
-                   &out->flags, &out->reg, &out->imm,
-                   &consumed) != 3)
-            return false;
+    if (argc != 3) {
+        return 1;
     }
 
-    else if (out->opcode == MY_JMP || out->opcode == MY_CALL ||
-             out->opcode == MY_JA  || out->opcode == MY_JB   ||
-             out->opcode == MY_JAE || out->opcode == MY_JBE  ||
-             out->opcode == MY_JE  || out->opcode == MY_JNE  ||
-             out->opcode == MY_JT) {
-
-        if (sscanf(rest, " %d %n", &out->imm, &consumed) != 1)
-            return false;
-    }
-
-    else {
-        sscanf(rest, " %n", &consumed);
-    }
-
-    rest += consumed;
-
-    while (*rest == ' ' || *rest == '\t' ||
-           *rest == '\r' || *rest == '\n')
-        rest++;
-
-    return *rest == '\0';
+    return disassembler(argv[1], argv[2]);
 }
 
-// Название команды по её числовому коду
-const char* disasmSimpleName(int command) {
+const char* getCommandName(int opcode) {
 
-    switch (command) {
-
+    switch (opcode) {
+        case MY_PUSH:   return "PUSH";
+        case MY_POP:    return "POP";
         case MY_ADD:    return "ADD";
         case MY_SUB:    return "SUB";
         case MY_MUL:    return "MUL";
         case MY_DIV:    return "DIV";
         case MY_SQUARE: return "SQUARE";
-
         case MY_SIN:    return "SIN";
         case MY_COS:    return "COS";
         case MY_TG:     return "TG";
         case MY_CTG:    return "CTG";
-
         case MY_BREAK:  return "BREAK";
         case MY_IN:     return "IN";
         case MY_OUT:    return "OUT";
         case MY_HLT:    return "HLT";
-
         case MY_JMP:    return "JMP";
         case MY_CALL:   return "CALL";
         case MY_RET:    return "RET";
-
         case MY_JA:     return "JA";
         case MY_JB:     return "JB";
         case MY_JAE:    return "JAE";
@@ -86,178 +40,82 @@ const char* disasmSimpleName(int command) {
         case MY_JE:     return "JE";
         case MY_JNE:    return "JNE";
         case MY_JT:     return "JT";
-
+        case MY_DRAW:   return "DRAW";
         default:        return NULL;
     }
 }
 
-// Проверка команды перехода
-static bool disasmIsJump(int command) {
+const char* getRegisterName(int reg) {
 
-    return command == MY_JMP ||
-           command == MY_CALL ||
-           command == MY_JA ||
-           command == MY_JB ||
-           command == MY_JAE ||
-           command == MY_JBE ||
-           command == MY_JE ||
-           command == MY_JNE ||
-           command == MY_JT;
+    switch (reg) {
+        case RAX: return "RAX";
+        case RBX: return "RBX";
+        case RCX: return "RCX";
+        case RDX: return "RDX";
+        default:  return NULL;
+    }
 }
 
-ErrorCode disassembler(files* usedFiles) {
-    if (usedFiles == NULL)
-        return ERR_INVALID_ARGUMENT;
+void printArgument(FILE* output, const binaryInstruction* command) {
 
-    FILE* exeFile = fopen(usedFiles->exeFile, "r");
+    bool hasMemory = (command->flags & ARG_MEM) != 0;
+    bool hasReg    = (command->flags & ARG_REG) != 0;
+    bool hasImm    = (command->flags & ARG_IMMED_VALUE) != 0;
 
-    if (exeFile == NULL)
-        return ERR_FILE_NOT_FOUND;
+    if (hasMemory)
+        fprintf(output, " [");
 
-    std::vector<disasmInstruction> instructions;
-
-    char line[MAX_COMMAND_LENGTH] = {};
-
-    // Первый проход: чтение команд
-    while (fgets(line, sizeof(line), exeFile) != NULL) {
-
-        disasmInstruction instruction = {};
-
-        if (!parseDisasmLine(line, &instruction)) {
-            FCLOSE(exeFile);
-            return ERR_INVALID_DATA;
-        }
-
-        instructions.push_back(instruction);
+    if (hasReg) {
+        const char* regName = getRegisterName(command->reg);
+        fprintf(output, "%s", regName ? regName : "UNKNOWN_REG");
     }
 
-    if (ferror(exeFile)) {
-        FCLOSE(exeFile);
-        return ERR_IO;
+    if (hasImm) {
+        if (hasReg && command->imm >= 0) fprintf(output, "+");
+        fprintf(output, "%d", command->imm);
     }
 
-    FCLOSE(exeFile);
+    if (hasMemory)
+        fprintf(output, "]");
+}
 
-    const char* registerNames[REGISTER_COUNT] = {
-        "RAX", "RBX", "RCX", "RDX"
-    };
+int disassembler(const char* inputName, const char* outputName) {
 
-    std::vector<bool> labels(instructions.size(), false);
+    assert(inputName);
+    assert(outputName);
 
-    // Второй проход: поиск меток и проверка команд
-    for (size_t i = 0; i < instructions.size(); i++) {
+    FILE* input = fopen(inputName, "rb");
+    FILE* output = fopen(outputName, "w");
 
-        const disasmInstruction& instruction = instructions[i];
+    binaryInstruction command = {};
 
-        if (disasmIsJump(instruction.opcode)) {
+    while (fread(&command, sizeof(command), 1, input) == 1) {
 
-            int address = instruction.imm;
+        const char* name = getCommandName(command.opcode);
 
-            if (address < 0 ||
-                (size_t)address >= instructions.size())
-                return ERR_OUT_OF_BOUNDS;
+        fprintf(output, "%s", name);
 
-            labels[address] = true;
+        if (command.opcode == MY_PUSH || command.opcode == MY_POP) {
+            printArgument(output, &command);
+        }
+        else if (command.opcode == MY_JMP  ||
+                 command.opcode == MY_CALL ||
+                 command.opcode == MY_JA   ||
+                 command.opcode == MY_JB   ||
+                 command.opcode == MY_JAE  ||
+                 command.opcode == MY_JBE  ||
+                 command.opcode == MY_JE   ||
+                 command.opcode == MY_JNE  ||
+                 command.opcode == MY_JT) {
+
+            fprintf(output, " %d", command.imm);
         }
 
-        if (instruction.opcode == MY_PUSH ||
-            instruction.opcode == MY_POP) {
-
-            if (instruction.reg < 0 ||
-                instruction.reg >= REGISTER_COUNT)
-                return ERR_INVALID_DATA;
-
-            if (instruction.opcode == MY_POP) {
-
-                if (instruction.flags != ARG_REG &&
-                    instruction.flags != (ARG_REG | ARG_MEM))
-                    return ERR_INVALID_DATA;
-
-                if (instruction.imm != 0)
-                    return ERR_INVALID_DATA;
-            }
-
-            if (instruction.opcode == MY_PUSH) {
-
-                if (instruction.flags < 1 ||
-                    instruction.flags > 7 ||
-                    instruction.flags == ARG_MEM)
-                    return ERR_INVALID_DATA;
-            }
-        }
-
-        else if (disasmSimpleName(instruction.opcode) == NULL) {
-            return ERR_INVALID_DATA;
-        }
+        fprintf(output, "\n");
     }
 
-    FILE* asmFile = fopen(usedFiles->asmProgramFile, "w");
+    FCLOSE(input);
+    FCLOSE(output);
 
-    if (asmFile == NULL)
-        return ERR_FILE_NOT_FOUND;
-
-    // Третий проход: восстановление ассемблерного кода
-    for (size_t i = 0; i < instructions.size(); i++) {
-
-        const disasmInstruction& instruction = instructions[i];
-
-        if (labels[i])
-            fprintf(asmFile, ":label_%u\n", (unsigned)i);
-
-        if (instruction.opcode == MY_PUSH ||
-            instruction.opcode == MY_POP) {
-
-            const char* commandName =
-                instruction.opcode == MY_PUSH ? "PUSH" : "POP";
-
-            bool hasMemory =
-                (instruction.flags & ARG_MEM) != 0;
-
-            bool hasRegister =
-                (instruction.flags & ARG_REG) != 0;
-
-            bool hasImmediate =
-                (instruction.flags & ARG_IMMED) != 0;
-
-            fprintf(asmFile, "%s ", commandName);
-
-            if (hasMemory)
-                fprintf(asmFile, "[");
-
-            if (hasRegister)
-                fprintf(asmFile, "%s",
-                        registerNames[instruction.reg]);
-
-            if (hasImmediate) {
-
-                if (hasRegister)
-                    fprintf(asmFile, "+%d", instruction.imm);
-                else
-                    fprintf(asmFile, "%d", instruction.imm);
-            }
-
-            if (hasMemory)
-                fprintf(asmFile, "]");
-
-            fprintf(asmFile, "\n");
-        }
-
-        else if (disasmIsJump(instruction.opcode)) {
-
-            fprintf(asmFile, "%s :label_%d\n",
-                    disasmSimpleName(instruction.opcode),
-                    instruction.imm);
-        }
-
-        else {
-
-            fprintf(asmFile, "%s\n",
-                    disasmSimpleName(instruction.opcode));
-        }
-    }
-
-    if (fclose(asmFile) != 0)
-        return ERR_IO;
-
-    return ERR_OK;
+    return 0;
 }

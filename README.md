@@ -8,26 +8,31 @@ It was written in C.
 
 ## Compilation and launch
 
-### Compilation without DEBUG
+### Compilation assembler
 ```
-g++ -g -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equal -Winline -Wunreachable-code -Wmissing-declarations -Wmissing-include-dirs -Wswitch-enum -Wswitch-default -Weffc++ -Wmain -Wextra -Wall -g -pipe -fexceptions -Wcast-qual -Wconversion -Wctor-dtor-privacy -Wempty-body -Wformat-security -Wformat=2 -Wignored-qualifiers -Wlogical-op -Wno-missing-field-initializers -Wnon-virtual-dtor -Woverloaded-virtual -Wpointer-arith -Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing -Wstrict-null-sentinel -Wtype-limits -Wwrite-strings -Werror=vla -D_DEBUG -D_EJUDGE_CLIENT_SIDE mainVirtualPr.cpp -o virtual-processor.exe
+g++ -g -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equal -Winline -Wunreachable-code -Wmissing-declarations -Wmissing-include-dirs -Wswitch-enum -Wswitch-default -Weffc++ -Wmain -Wextra -Wall -g -pipe -fexceptions -Wcast-qual -Wconversion -Wctor-dtor-privacy -Wempty-body -Wformat-security -Wformat=2 -Wignored-qualifiers -Wlogical-op -Wno-missing-field-initializers -Wnon-virtual-dtor -Woverloaded-virtual -Wpointer-arith -Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing -Wstrict-null-sentinel -Wtype-limits -Wwrite-strings -Werror=vla -D_DEBUG -D_EJUDGE_CLIENT_SIDE assembler.cpp -o assembler.exe
+```
+### Compilation processor without DEBUG
+```
+g++ -g -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equal -Winline -Wunreachable-code -Wmissing-declarations -Wmissing-include-dirs -Wswitch-enum -Wswitch-default -Weffc++ -Wmain -Wextra -Wall -g -pipe -fexceptions -Wcast-qual -Wconversion -Wctor-dtor-privacy -Wempty-body -Wformat-security -Wformat=2 -Wignored-qualifiers -Wlogical-op -Wno-missing-field-initializers -Wnon-virtual-dtor -Woverloaded-virtual -Wpointer-arith -Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing -Wstrict-null-sentinel -Wtype-limits -Wwrite-strings -Werror=vla -D_DEBUG -D_EJUDGE_CLIENT_SIDE processor.cpp -o processor.exe
 ```
 
-### Compilation with DEBUG
+### Compilation processor with DEBUG
 ```
-g++ -g -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equal -Winline -Wunreachable-code -Wmissing-declarations -Wmissing-include-dirs -Wswitch-enum -Wswitch-default -Weffc++ -Wmain -Wextra -Wall -g -pipe -fexceptions -Wcast-qual -Wconversion -Wctor-dtor-privacy -Wempty-body -Wformat-security -Wformat=2 -Wignored-qualifiers -Wlogical-op -Wno-missing-field-initializers -Wnon-virtual-dtor -Woverloaded-virtual -Wpointer-arith -Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing -Wstrict-null-sentinel -Wtype-limits -Wwrite-strings -Werror=vla -D_DEBUG -D_EJUDGE_CLIENT_SIDE -DCPU_DEBUG -DSTACK_DEBUG=7 mainVirtualPr.cpp -o virtual-processor.exe
+g++ -g -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equal -Winline -Wunreachable-code -Wmissing-declarations -Wmissing-include-dirs -Wswitch-enum -Wswitch-default -Weffc++ -Wmain -Wextra -Wall -g -pipe -fexceptions -Wcast-qual -Wconversion -Wctor-dtor-privacy -Wempty-body -Wformat-security -Wformat=2 -Wignored-qualifiers -Wlogical-op -Wno-missing-field-initializers -Wnon-virtual-dtor -Woverloaded-virtual -Wpointer-arith -Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing -Wstrict-null-sentinel -Wtype-limits -Wwrite-strings -Werror=vla -D_DEBUG -D_EJUDGE_CLIENT_SIDE -DCPU_DEBUG -DSTACK_DEBUG=7 processor.cpp -o processor.exe
 ```
 
 ### Launch
 ```
-./virtual-processor.exe asm-program.txt exe-file.txt
+./assembler.exe quad-equation.txt exe-file.txt binFile.bin
+./processor.exe binFile.bin
 ```
 
 ## Project parts
 
-- Assembler — translates assembly instructions into executable numeric commands
+- Assembler — translates assembly instructions into executable numeric commands / binary commands
 
-- Disassembler — translates numeric commands back into assembly instructions
+- Disassembler — translates bynary commands back into assembly instructions
 
 - Virtual CPU — executes instructions using a stack and registers
 
@@ -38,16 +43,15 @@ g++ -g -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equal
 
 ## Project Structure
 ```
-├── mainVirtualPr.cpp
-├── virtual-processor.h
-├── assembler.cpp
-├── disassembler.cpp
-├── processor.cpp
-├── math-functions.cpp
-├── extra-functions.cpp
-├── used-files
-│   ├── asm-program.txt
-│   └── exe-program.txt
+Task 6 virtual processor/
+    ├── assembler.cpp
+    ├── disassembler.cpp
+    ├── processor.cpp
+    ├── virtual-processor.h
+    ├── math-functions.cpp
+    ├── extra-functions.cpp
+    ├── used-files/...
+    └── README.md
 ```
 
 ## Assembly Instructions
@@ -79,13 +83,12 @@ PUSH 1
 POP RAX
 
 :next
-PUSH RAX
 PUSH 10
+PUSH RAX
 JA :end
 
 PUSH RAX
-PUSH RAX
-MUL
+CALL :square
 OUT
 
 PUSH RAX
@@ -98,64 +101,66 @@ JMP :next
 :end
 HLT
 
+:square
+POP RBX
+PUSH RBX
+PUSH RBX
+MUL
+RET
+
+
 ```
 
 ### Result
 
 ```
 RESULT: 1
-A new iteration of the cycle
-
 RESULT: 4
-A new iteration of the cycle
-
 RESULT: 9
-A new iteration of the cycle
-
 RESULT: 16
-A new iteration of the cycle
-
 RESULT: 25
-A new iteration of the cycle
-
 RESULT: 36
-A new iteration of the cycle
-
 RESULT: 49
-A new iteration of the cycle
-
 RESULT: 64
-A new iteration of the cycle
-
 RESULT: 81
-A new iteration of the cycle
-
 RESULT: 100
-A new iteration of the cycle
 
 Program ended
 CPU was destroyed
 ```
 ## Assembler
-He assembler translates text instructions into numeric opcodes.
+He assembler translates text instructions into numeric opcodes and into bynary format.
+
+## Binary format
+```
+enum ArgFlags {
+    ARG_IMMED_VALUE = 1 << 0,  // 001 = 1
+    ARG_REG         = 1 << 1,  // 010 = 2
+    ARG_MEM         = 1 << 2   // 100 = 4
+};
+```
+```
+struct binaryInstruction {
+    int32_t opcode;
+    int32_t flags;
+    int32_t reg;
+    int32_t imm;
+};
+```
 
 ### ExeFile
 ```
-1 1
-23 0
-22 0
-1 10
-15 14
-22 0
-22 0
-4
-12
-22 0
-1 1
-2
-23 0
-14 2
+1 1 0 1
+25 2 0 0
+1 1 0 10
+1 2 0 0
+16 13
+1 2 0 0
+23 14
 13
+1 2 0 0
+1 1 0 1
+...
 ```
 
 ## Virtual CPU
@@ -163,10 +168,11 @@ He assembler translates text instructions into numeric opcodes.
 The virtual CPU reads the generated numeric instructions and executes them sequentially.
 
 The CPU contains:
-- An instruction pointer (IP).
-- Four registers.
-- A dynamic stack.
-- A program instruction buffer.
+- An instruction pointer (IP)
+- Four registers
+- A dynamic stack
+- A program instruction buffer
+- RAM
 
 ## Stack
 
@@ -176,35 +182,9 @@ Stack is used from https://github.com/KatiaWeb12/Working-with-the-stack.git
 
 Implemented a function `CPUDump()` that allows you to track the behavior of the processor during debugging. Also, the current processor action is highlighted in red. When switching to a new iteration of the loop, there is a message about this.
 
-```
-CPUInfo 'CPUData'[007CFAC0] created by mainTest() at mainVirtualPr.cpp:123
-{
-        textLength = 79
-        stringsCount = 15
-        textOfExeProgram[0147CA38]: 1 1 |  23 0 |  22 0 |  1 10 |  15 14 |  22 0 |  22 0 |  4 |  12 |  22 0 |  1 1 |  2 |  23 0 |  14 2 |  13 |
-        registers[007CFAD4]{
-                *[0] = 0(POISON)
-                *[1] = 0(POISON)
-                *[2] = 0(POISON)
-                *[3] = 0(POISON)
-        }
+## Realised assembler-code files
 
-
-
-stack_t 'stk'[007CFAF8] created by CPULoad() at processor.cpp:12
-{
-        leftStructCanary = 8BADF00D
-        leftDataCanary   = ABADBABE
-
-        capacity = 3
-        size = 1
-        data[0147CA9B]{
-                *[0] = 1
-                *[1] = NaN(POISON)
-                *[2] = NaN(POISON)
-        }
-
-        rightDataCanary   = B16B00B5
-        rightStructCanary = 50FFC001
-}
-```
+- ellipse.txt              Draw ellipse using RAM
+- factorial.txt            Calculate factorial
+- quad-equation.txt        Solves the quadratic equation
+- squares-numbers1-10.txt  Counts squares of numbers from 1 to 10

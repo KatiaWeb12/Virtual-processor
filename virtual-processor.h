@@ -3,7 +3,7 @@ const size_t MAX_PATH_LENGTH = 300;
 const size_t MAX_COMMAND_LENGTH = 300;
 const size_t COMMANDS_COUNT = 26;
 const size_t START_LABEL_COUNT = 5;
-const size_t RAM_CAPACITY = 100;
+const size_t RAM_CAPACITY = 9;
 const int    MAX_CALL_DEPTH = 256;
 
 // Types
@@ -165,7 +165,9 @@ hash_t hashing(const char* str);
 
 // Disassembler
 
-ErrorCode disassembler(files* usedFiles);
+const char* getCommandName(int opcode);
+const char* getRegisterName(int reg);
+void printArgument(FILE* output, const binaryInstruction* command);
 
 // Processor
 

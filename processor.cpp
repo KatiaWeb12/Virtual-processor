@@ -449,7 +449,6 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
     return ERR_INVALID_DATA;
 }
 
-
 void CPUDestroy(CPUInfo* CPUData)
 {
 
@@ -528,9 +527,12 @@ ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
     printf("{\n");
 
     printf("\tprogram[%p]\n", (const void*)CPUData->program);
-    printf("\tcommandsCount = %zu\n\n", CPUData->stringsCount);
+    printf("\tcommandsCount = %u\n\n", CPUData->stringsCount);
 
-    for (size_t i = 0; i < CPUData->stringsCount; i++) {
+    size_t start = CPUData->IP > 3 ? CPUData->IP - 3 : 0;
+    size_t end = CPUData->IP + 4;
+
+    for (size_t i = start; i < end; i++) {
 
         const binaryInstruction* instruction = &CPUData->program[i];
 
@@ -564,7 +566,7 @@ ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
 
     for (size_t i = 0; i < RAM_CAPACITY; i++) {
 
-        printf("\t\t[%zu] = %d\n", i, CPUData->RAM[i]);
+        printf("\t\t[%u] = %d\n", i, CPUData->RAM[i]);
     }
 
     printf("\t}\n");
