@@ -22,7 +22,7 @@ int main(int argc, char* argv[]){
     // Processor
 
     char exeFile[MAX_PATH_LENGTH] = {};
-    ErrorCode error = setExeFilename(exeFile, MAX_PATH_LENGTH, argc, argv);
+    ErrorCode error = setBinFilename(exeFile, MAX_PATH_LENGTH, argc, argv);
     if(error) return error;
 
     struct CPUInfo CPUData = {};
@@ -50,14 +50,14 @@ int main(int argc, char* argv[]){
 
 ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile){
 
-    char** memory = (char**)calloc(MAX_COMMAND_LENGTH, sizeof(char*));
-    if (memory == NULL) return ERR_OUT_OF_MEMORY;
+    assert(CPUData);
+    assert(stk);
+    assert(exeProgramFile);
 
-    CPUData->programLines = memory;
+    ErrorCode error = readBinaryProgram(exeProgramFile, CPUData);
+    if (error != ERR_OK) return error;
 
-    readExeProgram(exeProgramFile, CPUData);
-
-    ErrorCode error = STACK_INIT(stk, 3);
+    error = STACK_INIT(stk, 3);
     if(error){
         printf("The function stackInit was completed with an error code: %d\n", error);
         return error;
@@ -76,79 +76,134 @@ ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile){
     return ERR_OK;
 }
 
-ErrorCode readExeProgram(const char* fileName, CPUInfo* CPUData){
+ErrorCode readBinaryProgram(const char* fileName, CPUInfo* CPUData) {
 
-    readExeTextIntoSingleBuffer(fileName, CPUData);
-    CPUData->stringsCount = calculateStringsCount(CPUData->textOfExeProgram);
-    recordPtrStringsForExe(CPUData); //TODO: ссылки
+    assert(fileName);
+    assert(CPUData);
 
-    return ERR_OK;
+    FILE* file = fopen(fileName, "rb");
 
-}
+    if (file == NULL) {
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "File-problem", ERR_FILE_NOT_FOUND);
+        printErrorIntoConsole(&debugLogInfo);
+        printf("Cannot open binary file: %s\n", fileName);
 
-ErrorCode readExeTextIntoSingleBuffer(const char* fileName, CPUInfo* CPUData){
-
-    FILE* file = fopen(fileName, "r");
-    if(file == NULL) return ERR_UNKNOWN;
+        return ERR_FILE_NOT_FOUND;
+    }
 
     struct stat fileInfo;
-    stat(fileName, &fileInfo);
-    size_t fileSize = fileInfo.st_size;
+    long fileSize = fileInfo.st_size;
 
-    char* memory = (char*)calloc(fileSize + 1, sizeof(char));
-    if(memory == NULL) return ERR_OUT_OF_MEMORY;
-    CPUData->textOfExeProgram = memory;
+    size_t commandsCount = (size_t)fileSize / sizeof(binaryInstruction);
 
-    CPUData->textLength = fileSize;
+    binaryInstruction* memory = (binaryInstruction*)calloc(commandsCount, sizeof(binaryInstruction));
 
-    fread(CPUData->textOfExeProgram, fileSize, 1, file);
-    (CPUData->textOfExeProgram)[fileSize] = '\0';
+    if (memory == NULL) {
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "OUT_OF_MEMORY", ERR_OUT_OF_MEMORY);
+        printErrorIntoConsole(&debugLogInfo);
+
+        FCLOSE(file);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    fread(memory, sizeof(binaryInstruction), commandsCount, file);
 
     FCLOSE(file);
 
-    return ERR_OK;
-}
-
-ErrorCode recordPtrStringsForExe(CPUInfo* CPUData){
-
-    if(CPUData == NULL) return ERR_INVALID_ARGUMENT;
-
-    char* text = CPUData->textOfExeProgram;
-    char** programLines = CPUData->programLines;
-    size_t stringsCount = CPUData->stringsCount;
-
-    size_t stringIndex = 0;
-    char* currentPtr = text;
-
-    while(currentPtr != NULL && stringIndex < stringsCount){
-
-        programLines[stringIndex++] = currentPtr;
-
-        char* newString = strchr(currentPtr, '\n');
-        if(newString == NULL) break;
-
-        currentPtr = newString + 1;
-        *newString = '\0';
-    }
+    CPUData->program = memory;
+    CPUData->stringsCount = commandsCount;
 
     return ERR_OK;
 }
 
 ErrorCode CPUexecute(CPUInfo* CPUData){
 
-    int command = 0;
-    int arg = 0;
-
     while (CPUData->IP < CPUData->stringsCount) {
 
-        int sscanfResult = sscanf(CPUData->programLines[CPUData->IP], "%d %d", &command, &arg);
-        if (sscanfResult < 1) return ERR_INVALID_DATA;
+        binaryInstruction* instruction = &CPUData->program[CPUData->IP];
+
+        int command = instruction->opcode;
+        int flags   = instruction->flags;
+        int reg     = instruction->reg;
+        int imm     = instruction->imm;
 
         switch(command){
 
-            case MY_PUSH:{
+            case MY_PUSH: {
 
-                stackPush(CPUData->stack, arg * 1000);
+                int res = 0;
+
+                if (flags & ARG_REG) {
+
+                    if (reg < 0 || reg >= REGISTER_COUNT){
+                            error_debug debugLogInfo = {};
+                            ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect register", ERR_INVALID_ARGUMENT);
+                            debugLogInfo.errCode = ERR_INVALID_ARGUMENT;
+                            printErrorIntoConsole(&debugLogInfo);
+
+                            return ERR_INVALID_ARGUMENT;
+                    }
+
+
+                    res += CPUData->registers[reg];
+                }
+
+                if (flags & ARG_IMMED_VALUE) res += imm;
+
+                if (flags & ARG_MEM) {
+
+                    int address = res;
+
+                    res = CPUData->RAM[address];
+                }
+
+                ErrorCode error = stackPush(CPUData->stack, res * 1000);
+
+                if (error != ERR_OK)
+                    return error;
+
+                break;
+            }
+
+            case MY_POP: {
+                if (flags != ARG_REG &&
+                    flags != (ARG_MEM | ARG_REG) &&
+                    flags != (ARG_MEM | ARG_IMMED_VALUE) &&
+                    flags != (ARG_MEM | ARG_REG | ARG_IMMED_VALUE)) {
+
+                    return ERR_INVALID_ARGUMENT;
+                }
+
+                if ((flags & ARG_REG) && (reg < 0 || reg >= REGISTER_COUNT)) return ERR_INVALID_ARGUMENT;
+
+                int address = 0;
+
+                if (flags & ARG_MEM) {
+
+                    if (flags & ARG_REG) address += CPUData->registers[reg];
+
+                    if (flags & ARG_IMMED_VALUE) address += imm;
+
+                    if (address < 0 || address >= (int)RAM_CAPACITY) return ERR_OUT_OF_BOUNDS;
+                }
+
+                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) return ERR_INVALID_DATA;
+
+                int res = 0;
+
+                ErrorCode error = stackPop(CPUData->stack, &res);
+                if (error != ERR_OK)
+                    return error;
+
+                if (flags & ARG_MEM) {
+                    CPUData->RAM[address] = (int)(res / 1000);
+                }
+                else {
+                    CPUData->registers[reg] = (int)(res / 1000);
+                }
+
                 break;
             }
 
@@ -293,50 +348,11 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
             }
             case MY_JMP: {
 
-                if (sscanfResult != 2) {
-                    return ERR_INVALID_DATA;
-                }
+                if (imm < 0 || (size_t)imm >= CPUData->stringsCount) return ERR_OUT_OF_BOUNDS;
 
-                if (arg < 0 || (size_t)arg >= CPUData->stringsCount) {
-                    return ERR_OUT_OF_BOUNDS;
-                }
-                #ifdef CPU_DEBUG
-                printf("A new iteration of the cycle\n");
-                #endif
+                CPUData->IP = (size_t)imm;
 
-                CPUData->IP = (size_t)arg;
                 continue;
-            }
-            case MY_PUSH_REG: {
-
-                if (arg < 0 || arg >= REGISTER_COUNT) {
-                    return ERR_INVALID_ARGUMENT;
-                }
-
-                ErrorCode error = stackPush(CPUData->stack, CPUData->registers[arg]);
-                if (error != ERR_OK) {
-                    return error;
-                }
-
-                break;
-            }
-            case MY_POP_REG: {
-
-                if (arg < 0 || arg >= REGISTER_COUNT) {
-                    return ERR_INVALID_ARGUMENT;
-                }
-
-                if (checkStackBeforeOperation(CPUData->stack, 1) != ERR_OK) {
-                    return ERR_INVALID_DATA;
-                }
-
-                ErrorCode error = stackPop(CPUData->stack, &(CPUData->registers[arg]));
-
-                if (error != ERR_OK) {
-                    return error;
-                }
-
-                break;
             }
             case MY_JA:
             case MY_JB:
@@ -345,11 +361,7 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
             case MY_JE:
             case MY_JNE: {
 
-                if (sscanfResult != 2) {
-                    return ERR_INVALID_DATA;
-                }
-
-                if (arg < 0 || (size_t)arg >= CPUData->stringsCount) {
+                if (imm < 0 || (size_t)imm >= CPUData->stringsCount) {
                     return ERR_OUT_OF_BOUNDS;
                 }
 
@@ -365,7 +377,7 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
 
                 if (jumpType(el1, el2, command)) {
                     CPU_DUMP(CPUData, CPUData->IP);
-                    CPUData->IP = (size_t)arg;
+                    CPUData->IP = (size_t)imm;
                     continue;
                 }
 
@@ -373,30 +385,26 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
             }
             case MY_JT: {
 
-                if (sscanfResult != 2) {
-                    return ERR_INVALID_DATA;
-                }
-                if (arg < 0 || (size_t)arg >= CPUData->stringsCount) {
+                if (imm < 0 || (size_t)imm >= CPUData->stringsCount) {
                     return ERR_OUT_OF_BOUNDS;
                 }
                 bool jump = ifTuesday();
 
                 if (jump) {
                     CPU_DUMP(CPUData, CPUData->IP);
-                    CPUData->IP = (size_t)arg;
+                    CPUData->IP = (size_t)imm;
                     continue;
                 }
                 break;
             }
             case MY_CALL: {
 
-                if (sscanfResult != 2) return ERR_INVALID_DATA;
-                if (arg < 0 || (size_t)arg >= CPUData->stringsCount) return ERR_OUT_OF_BOUNDS;
+                if (imm < 0 || (size_t)imm >= CPUData->stringsCount) return ERR_OUT_OF_BOUNDS;
 
                 ErrorCode error = stackPush(&CPUData->returnAddresses, (stackElem_t)(CPUData->IP + 1));
                 if (error != ERR_OK) return error;
 
-                CPUData->IP = (size_t)arg;
+                CPUData->IP = (size_t)imm;
                 continue;
             }
             case MY_RET: {
@@ -431,24 +439,22 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
     return ERR_INVALID_DATA;
 }
 
+
 void CPUDestroy(CPUInfo* CPUData)
 {
 
-    CPU_DUMP(CPUData, CPUData->stringsCount-1);
+    assert(CPUData);
 
     cleanRegister(CPUData);
     stackDestroy(CPUData->stack);
     stackDestroy(&CPUData->returnAddresses);
 
-    char* dataMemory = (char*)CPUData->programLines; //TODO: в free
-    free(dataMemory);
+    free(CPUData->program);
 
-    CPUData->textLength = 0;
+    CPUData->program = NULL;
+    CPUData->stack = NULL;
     CPUData->stringsCount = 0;
     CPUData->IP = 0;
-
-    free(CPUData->textOfExeProgram);
-    CPUData->programLines = NULL;
 
     printf(COLOR_RED "%s \n" COLOR_RESET, "CPU was destroyed");
 
@@ -500,9 +506,7 @@ bool jumpType(int el1, int el2, int command){
 #ifdef CPU_DEBUG
 ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
 
-    if (CPUData == NULL) {
-        return ERR_INVALID_ARGUMENT;
-    }
+    assert(CPUData);
 
     printf("\nCPUInfo '%s'[%p] created by %s() at %s:%u\n",
             CPUData->debugInfo.name,
@@ -513,19 +517,26 @@ ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
 
     printf("{\n");
 
-    printf("\ttextLength = %u \n", CPUData->textLength);
-    printf("\tstringsCount = %u \n", CPUData->stringsCount);
-
-    printf("\ttextOfExeProgram[%p]: ", CPUData->textOfExeProgram);
+    printf("\tprogram[%p]\n", (const void*)CPUData->program);
+    printf("\tcommandsCount = %zu\n\n", CPUData->stringsCount);
 
     for (size_t i = 0; i < CPUData->stringsCount; i++) {
 
-        if (i == currentLine) {
-            printf(BG_RED " %s " COLOR_RESET "|", CPUData->programLines[i]);
-        }
-        else {
-            printf(" %s | ", CPUData->programLines[i]);
-        }
+        const binaryInstruction* instruction = &CPUData->program[i];
+
+            if (i == currentLine) printf(BG_RED);
+
+            printf("\t[%u] %d %d %d %d",
+                   i,
+                   instruction->opcode,
+                   instruction->flags,
+                   instruction->reg,
+                   instruction->imm);
+
+            if (i == currentLine)
+                printf(COLOR_RESET);
+
+            putchar('\n');
     }
 
     putchar('\n');
@@ -538,6 +549,16 @@ ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
 
     printf("\t}\n\n");
     putchar('\n');
+
+    printf("\n\tRAM[%p] {\n", (const void*)CPUData->RAM);
+
+    for (size_t i = 0; i < RAM_CAPACITY; i++) {
+
+        printf("\t\t[%zu] = %d\n", i, CPUData->RAM[i]);
+    }
+
+    printf("\t}\n");
+
 
     printf("\tIP = %u \n", CPUData->IP);
 

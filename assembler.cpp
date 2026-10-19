@@ -13,12 +13,14 @@
 #include "math-functions.cpp"
 #include "extra-functions.cpp"
 
-const int INVALID_REG = 0xABADBABE;
+const int INVALID_REG   = 0xABADBABE;
 const int INVALID_LABEL = 0xB16B00B5;
 
 int main(int argc, char* argv[]){
 
     cancelBuffering();
+
+    files usedFiles = {};
 
     ErrorCode error = setFileNames(&usedFiles, MAX_PATH_LENGTH, argc, argv);
     if(error) return error;
@@ -33,7 +35,7 @@ int main(int argc, char* argv[]){
     consoleProgramOutput(&asmProgramData);
     #endif
 
-    error = assembler(usedFiles.exeFile, &asmProgramData);
+    error = assembler(usedFiles.exeFile, usedFiles.binFile, &asmProgramData);
     if (error != ERR_OK) return error;
 
     printf("Asm completed successfully\n");
@@ -41,6 +43,7 @@ int main(int argc, char* argv[]){
     return ERR_OK;
 }
 
+// Loads
 
 ErrorCode asmLoad(asmProgramInfo* asmData, char* asmProgramFile){
 
@@ -75,12 +78,12 @@ ErrorCode asmLoad(asmProgramInfo* asmData, char* asmProgramFile){
     return ERR_OK;
 }
 
-ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData){
+ErrorCode readAsmProgram(const char* asmProgramFile, asmProgramInfo* asmProgramData){
 
-    assert(fileName);
+    assert(asmProgramFile);
     assert(asmProgramData);
 
-    ErrorCode error = readAsmTextIntoSingleBuffer(fileName, asmProgramData);
+    ErrorCode error = readAsmTextIntoSingleBuffer(asmProgramFile, asmProgramData);
     if(error != ERR_OK) return error;
 
     asmProgramData->stringsCount = calculateStringsCount(asmProgramData->textOfAsmProgram);
@@ -90,23 +93,23 @@ ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData){
 
 }
 
-ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData){
+ErrorCode readAsmTextIntoSingleBuffer(const char* asmProgramFile, struct asmProgramInfo* asmProgramData){
 
-    assert(fileName);
+    assert(asmProgramFile);
     assert(asmProgramData);
 
-    FILE* file = fopen(fileName, "r");
+    FILE* file = fopen(asmProgramFile, "r");
 
     if(file == NULL){
         error_debug debugLogInfo = {};
-        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "", ERR_FILE_NOT_FOUND);
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "ERR_FILE_NOT_FOUND", ERR_FILE_NOT_FOUND);
         printErrorIntoConsole(&debugLogInfo);
-        printf("File %s not found\n", fileName);
+        printf("File %s not found\n", asmProgramFile);
         return ERR_FILE_NOT_FOUND;
     }
 
     struct stat fileInfo;
-    stat(fileName, &fileInfo);
+    stat(asmProgramFile, &fileInfo);
     size_t fileSize = fileInfo.st_size;
 
     char* memory = (char*)calloc(fileSize + 1, sizeof(char));
@@ -154,20 +157,36 @@ void recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData){
     return;
 }
 
-ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
+// Assembler-work
+
+ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asmProgramInfo* asmProgramData){
 
     assert(asmProgramData);
+    assert(exeFileName);
+    assert(binFileName);
 
     ErrorCode error = collectLabels(asmProgramData);
     if (error != ERR_OK) return error;
 
-    FILE* file = fopen(fileName, "w");
+    FILE* exeFile = fopen(exeFileName, "w");
 
-    if(file == NULL){
+    if(exeFile == NULL){
         error_debug debugLogInfo = {};
         ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Cannot open output file", ERR_FILE_NOT_FOUND);
         debugLogInfo.errCode = ERR_FILE_NOT_FOUND;
         printErrorIntoConsole(&debugLogInfo);
+
+        return ERR_FILE_NOT_FOUND;
+    };
+
+    FILE* binFile = fopen(binFileName, "wb");
+
+    if(binFile == NULL){
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Cannot open output file", ERR_FILE_NOT_FOUND);
+        debugLogInfo.errCode = ERR_FILE_NOT_FOUND;
+        printErrorIntoConsole(&debugLogInfo);
+
         return ERR_FILE_NOT_FOUND;
     };
 
@@ -177,7 +196,6 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
     for(size_t i = 0; i < asmProgramData->stringsCount; i++){
 
         char* line = asmProgramData->programLines[i];
-        removeAsmComment(line);
 
         char commandName[MAX_COMMAND_LENGTH] = {};
         char argument[MAX_COMMAND_LENGTH] = {};
@@ -193,150 +211,166 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
         bool commandFound = false;
 
         while(commandIndex < COMMANDS_COUNT){
+
             if(commandsArr[commandIndex].hash == commandHash){
+
                 if(strcmp(commandName, commandsArr[commandIndex].commandName) == 0){
 
                     commandFound = true;
 
-                    if (commandIndex == 0) {
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
-                        if(checkOper != ERR_OK) {
-                            continue;
-                        };
+                    if (commandIndex == 0) { // PUSH
 
-                        int regIndex = getRegisterIndex(argument);
+                        int flags = 0;
+                        int reg = 0;
+                        int imm = 0;
 
-                        if (regIndex != INVALID_REG) {
-                            fprintf(file, "%d %d\n", MY_PUSH_REG, regIndex);
+                        error = parsePushPopArguments(argument, &flags, &reg, &imm);
+                        if (error != ERR_OK) {
+                            FCLOSE(exeFile);
+                            FCLOSE(binFile);
+                            return error;
                         }
-                        else {
-                            char* endPtr = NULL;
-                            long value = strtol(argument, &endPtr, 10); //converts a string to an long integer
 
-                            if (*endPtr != '\0') {
-                                error_debug debugLogInfo = {};
-                                ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect register", ERR_INVALID_DATA);
-                                printErrorIntoConsole(&debugLogInfo);
-                                FCLOSE(file);
-                                return ERR_INVALID_DATA;
-                            }
-
-                            fprintf(file, "%d %ld\n", MY_PUSH, value);
-                        }
+                        error = writeCommand(exeFile, binFile, MY_PUSH, flags, reg, imm, 4);
+                        if (error != ERR_OK) break;
                     }
 
-                    else if (commandIndex == 1) {
+                    else if (commandIndex == 1) { // POP
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 2, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        int regIndex = getRegisterIndex(argument);
+                        int flags = 0;
+                        int reg = 0;
+                        int imm = 0;
 
-                        if (regIndex == INVALID_REG) {
+                        error = parsePushPopArguments(argument, &flags, &reg, &imm);
+
+                        if (error != ERR_OK || (flags != ARG_REG && flags != (ARG_MEM | ARG_REG))) {
+
                             error_debug debugLogInfo = {};
-                            ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Non-register", ERR_INVALID_DATA);
+                            ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect POP command", ERR_INVALID_ARGUMENT);
+                            debugLogInfo.errCode = ERR_INVALID_ARGUMENT;
                             printErrorIntoConsole(&debugLogInfo);
-                            FCLOSE(file);
-                            return ERR_INVALID_DATA;
+                            printf("%s \n\n", line);
+
+                            FCLOSE(exeFile);
+                            FCLOSE(binFile);
+                            return ERR_INVALID_ARGUMENT;
                         }
 
-                        fprintf(file, "%d %d\n", MY_POP_REG, regIndex);
+                        error = writeCommand(exeFile, binFile, MY_POP, flags, reg, imm, 4);
+                        if (error != ERR_OK) break;
                     }
 
-                    else if (commandIndex == 2) {
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                    else if (commandIndex == 2) { // ADD
+
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_ADD);
+                        error = writeCommand(exeFile, binFile, MY_ADD, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 3) {
+                    else if (commandIndex == 3) { // SUB
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_SUB);
+                        error = writeCommand(exeFile, binFile, MY_SUB, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 4) {
+                    else if (commandIndex == 4) { // MUL
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_MUL);
+                        error = writeCommand(exeFile, binFile, MY_MUL, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 5) {
+                    else if (commandIndex == 5) { // DIV
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_DIV);
+                        error = writeCommand(exeFile, binFile, MY_DIV, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 6) {
+                    else if (commandIndex == 6) { // SQUARE
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_SQUARE);
+                        error = writeCommand(exeFile, binFile, MY_SQUARE, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 7) {
+                    else if (commandIndex == 7) { // SIN
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_SIN);
+                        error = writeCommand(exeFile, binFile, MY_SIN, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 8){
+                    else if (commandIndex == 8){ // COS
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_COS);
+                        error = writeCommand(exeFile, binFile, MY_COS, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 9) {
+                    else if (commandIndex == 9) { // TG
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_TG);
+                        error = writeCommand(exeFile, binFile, MY_TG, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 10) {
+                    else if (commandIndex == 10) { // CTG
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_CTG);
+                        error = writeCommand(exeFile, binFile, MY_CTG, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 11) {
+                    else if (commandIndex == 11) { // BREAK
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_BREAK);
+                        error = writeCommand(exeFile, binFile, MY_BREAK, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 12) {
+                    else if (commandIndex == 12) { // IN
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_IN);
+                        error = writeCommand(exeFile, binFile, MY_IN, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 13) {
+                    else if (commandIndex == 13) { // OUT
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_OUT);
+                        error = writeCommand(exeFile, binFile, MY_OUT, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 14) {
+                    else if (commandIndex == 14) { // HLT
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
 
-                        fprintf(file, "%d\n", MY_HLT);
+                        error = writeCommand(exeFile, binFile, MY_HLT, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 15) {
+                    else if (commandIndex == 15) { // JMP
 
-                        error = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
+                        error = checkAsmOperation(sscanfResult, exeFile, 2, __func__, __LINE__);
                         if (error != ERR_OK) return error;
 
                         int address = findLabel(asmProgramData->labels, argument);
@@ -346,15 +380,17 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
                             ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Label-error", ERR_NOT_FOUND);
                             printErrorIntoConsole(&debugLogInfo);
                             printf("Unknown label: %s\n", argument);
-                            FCLOSE(file);
+                            FCLOSE(exeFile);
+                            FCLOSE(binFile);
                             return ERR_NOT_FOUND;
                         }
 
-                        fprintf(file, "%d %d\n", MY_JMP, address);
+                        error = writeCommand(exeFile, binFile, MY_JMP, 0, 0, address, 2);
+                        if (error != ERR_OK) break;
                     }
-                    else if (commandIndex == 16){
+                    else if (commandIndex == 16){ // CALL
 
-                        error = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
+                        error = checkAsmOperation(sscanfResult, exeFile, 2, __func__, __LINE__);
                         if (error != ERR_OK) return error;
 
                         int address = findLabel(asmProgramData->labels, argument);
@@ -364,23 +400,27 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
                             ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Label-error", ERR_NOT_FOUND);
                             printErrorIntoConsole(&debugLogInfo);
                             printf("Unknown label: %s\n", argument);
-                            FCLOSE(file);
+                            FCLOSE(exeFile);
+                            FCLOSE(binFile);
                             return ERR_NOT_FOUND;
                         }
 
-                        fprintf(file, "%d %d\n", MY_CALL, address);
+                        error = writeCommand(exeFile, binFile, MY_CALL, 0, 0, address, 2);
+                        if (error != ERR_OK) break;
                     }
 
-                    else if (commandIndex == 17){
+                    else if (commandIndex == 17){ // RET
 
-                        ErrorCode checkOper = checkAsmOperation(sscanfResult, file, 1, __func__, __LINE__);
+                        ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
                         if(checkOper != ERR_OK) return ERR_INVALID_DATA;
-                        fprintf(file, "%d\n", MY_RET);
+
+                        error = writeCommand(exeFile, binFile, MY_RET, 0, 0, 0, 1);
+                        if (error != ERR_OK) break;
 
                     }
                     else if (commandCondition (commandIndex)) {
 
-                        error = checkAsmOperation(sscanfResult, file, 2, __func__, __LINE__);
+                        error = checkAsmOperation(sscanfResult, exeFile, 2, __func__, __LINE__);
                         if (error != ERR_OK) return error;
 
                         int address = findLabel(asmProgramData->labels, argument);
@@ -390,11 +430,13 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
                             ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Label-error", ERR_NOT_FOUND);
                             printErrorIntoConsole(&debugLogInfo);
                             printf("Unknown label: %s\n", argument);
-                            FCLOSE(file);
+                            FCLOSE(exeFile);
+                            FCLOSE(binFile);
                             return ERR_NOT_FOUND;
                         }
 
                         int command = 0;
+
                         if      (commandIndex == 18)  command = MY_JA;
                         else if (commandIndex == 19)  command = MY_JB;
                         else if (commandIndex == 20)  command = MY_JAE;
@@ -403,8 +445,10 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
                         else if (commandIndex == 23)  command = MY_JNE;
                         else if (commandIndex == 24)  command = MY_JT;
 
-                        fprintf(file, "%d %d\n", command, address);
+                        error = writeCommand(exeFile, binFile, command, 0, 0, address, 2);
+                        if (error != ERR_OK) break;
                     }
+
                     break;
                 }
             }
@@ -417,24 +461,26 @@ ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData){
             ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Unknown-command", ERR_INVALID_DATA);
             printErrorIntoConsole(&debugLogInfo);
             printf("Unknown command: %s\n", commandName);
-            FCLOSE(file);
 
+            FCLOSE(exeFile);
+            FCLOSE(binFile);
             return ERR_INVALID_DATA;
         }
     }
 
-    FCLOSE(file);
+    FCLOSE(exeFile);
+    FCLOSE(binFile);
+
     return ERR_OK;
 }
 
 ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line){
 
     assert(file);
+    assert(function);
+    assert(line > 0);
 
     if (sscanfResult != operationArgsCount) {
-
-        FCLOSE(file);
-
         error_debug debugLogInfo = {};
         ERROR_STRUCT_FORMAT(&debugLogInfo,
                             function,
@@ -444,6 +490,7 @@ ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArg
 
         printErrorIntoConsole(&debugLogInfo);
 
+        FCLOSE(file);
         return ERR_INVALID_DATA;
     }
 
@@ -472,6 +519,111 @@ void removeAsmComment(char* line) {
     }
 
     return;
+}
+
+ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm){
+
+    assert(arg);
+    assert(flags);
+    assert(reg);
+    assert(imm);
+
+    char buffer[64] = {};
+
+    if (strlen(arg) >= sizeof(buffer)){
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "PUSH-argument is too long", ERR_INVALID_ARGUMENT);
+        printErrorIntoConsole(&debugLogInfo);
+
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    strcpy(buffer, arg);
+    size_t bufLength = strlen(buffer);
+
+    // PUSH [...] (RAM-PUSH)
+    if(bufLength >= 2 && buffer[0] == '[' && buffer[bufLength-1] == ']'){
+
+        *flags |= ARG_MEM;
+        buffer[bufLength-1] ='\0';
+        memmove(buffer, buffer + 1, bufLength - 1); // From buffer + 1 to buffer (bufLength - 1 bytes)
+    }
+
+    // PUSH AX+1
+    char* plus = strchr(buffer, '+');
+    if(plus != NULL){
+
+        *plus = '\0';
+        int registerIndex = getRegisterIndex(buffer);
+
+        if(registerIndex == INVALID_REG) {
+            error_debug debugLogInfo = {};
+            ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Invalid register", ERR_INVALID_ARGUMENT);
+            printErrorIntoConsole(&debugLogInfo);
+
+            return ERR_INVALID_ARGUMENT;
+        }
+
+        char rest ='\0';
+
+        if (sscanf(plus + 1, "%d %c", imm, &rest) != 1) {
+            error_debug debugLogInfo = {};
+            ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Invalid register", ERR_INVALID_ARGUMENT);
+            printErrorIntoConsole(&debugLogInfo);
+
+            return ERR_INVALID_ARGUMENT;
+        }
+
+        *reg = registerIndex;
+        *flags |= (ARG_REG | ARG_IMMED_VALUE);
+
+        return ERR_OK;
+    }
+
+    // PUSH AX
+    int registerIndex = getRegisterIndex(buffer);
+
+    if (registerIndex != INVALID_REG) {
+
+        *reg = registerIndex;
+        *flags |= ARG_REG;
+
+        return ERR_OK;
+    }
+
+    // PUSH 1
+    char rest = '\0';
+
+    if (sscanf(buffer, "%d %c", imm, &rest) != 1)
+        return ERR_INVALID_ARGUMENT;
+
+    *flags |= ARG_IMMED_VALUE;
+
+    return ERR_OK;
+}
+
+ErrorCode writeCommand(FILE* exeFile, FILE* binFile,
+                       int opcode, int flags, int reg, int imm,
+                       int argsCount) {
+
+    int32_t instruction[] = {opcode, flags, reg, imm};
+
+    if (argsCount == 4) {
+
+        fprintf(exeFile, "%d %d %d %d\n", opcode, flags, reg, imm);
+    }
+    else if (argsCount == 2) {
+
+        fprintf(exeFile, "%d %d\n", opcode, imm);
+    }
+    else {
+
+        fprintf(exeFile, "%d\n", opcode);
+    }
+
+    fwrite(instruction, sizeof(int32_t), 4, binFile);
+
+    return ERR_OK;
 }
 
 // Labels
@@ -521,19 +673,33 @@ ErrorCode collectLabels(asmProgramInfo* asmData) {
 
             char name[MAX_COMMAND_LENGTH] = {};
 
-            if (sscanf(line, "%299s", name) != 1) return ERR_INVALID_DATA;
+            if (sscanf(line, "%300s", name) != 1) {
+                error_debug debugLogInfo = {};
+                ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect label", ERR_INVALID_DATA);
+                printErrorIntoConsole(&debugLogInfo);
+                printf("Incorrect label in line: '%s'\n", line);
 
-            size_t nameLength = strlen(name);
-            char* rest = line + nameLength;
+                return ERR_INVALID_DATA;
+            }
+
+            size_t nameLen = strlen(name);
+            char* rest = line + nameLen;
 
             while (*rest == ' ' || *rest == '\t' || *rest == '\r') rest++;
 
-            if (*rest != '\0') return ERR_INVALID_DATA;
+            if (*rest != '\0'){
+                error_debug debugLogInfo = {};
+                ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect label ending", ERR_INVALID_DATA);
+                printErrorIntoConsole(&debugLogInfo);
+                printf("Incorrect label in line: '%s'\n", line);
+
+                return ERR_INVALID_DATA;
+            }
 
             ErrorCode error = addLabel(asmData->labels, line, commandAddress);
             if (error != ERR_OK) return error;
 
-            line[nameLength] = '\0';
+            line[nameLen] = '\0';
 
             continue;
         }
@@ -546,10 +712,16 @@ ErrorCode collectLabels(asmProgramInfo* asmData) {
 
 ErrorCode addLabel(label* labels, char* name, int address) {
 
-    if (labels == NULL || name == NULL || address < 0) return ERR_INVALID_ARGUMENT;
+    assert(labels);
+    assert(name);
+    assert(address >= 0);
 
     if (findLabel(labels, name) != INVALID_LABEL) {
-        printf("Error Re-labeling: %s\n", name);
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "", ERR_ALREADY_EXISTS);
+        printErrorIntoConsole(&debugLogInfo);
+        printf("Error re-labeling: %s\n\n", name);
+
         return ERR_ALREADY_EXISTS;
     }
 
@@ -627,6 +799,8 @@ ErrorCode resizeLabels(label* labels, int direction){
     return ERR_OK;
 }
 
+// RegisterIndex
+
 int getRegisterIndex(const char* name) {
 
     if (strcmp(name, "RAX") == 0) return RAX;
@@ -636,6 +810,8 @@ int getRegisterIndex(const char* name) {
 
     return INVALID_REG;
 }
+
+// Hashing commands
 
 hash_t hashing(const char* str) {
 
@@ -665,6 +841,7 @@ void formCommandsArr(commandHash_t* commandsArr){
 
 void createCommandHashEl(commandHash_t* commandsArr, const char* command, size_t commandIndex){
 
+    assert(commandsArr);
     assert(command);
 
     commandsArr[commandIndex] = {};
@@ -674,4 +851,3 @@ void createCommandHashEl(commandHash_t* commandsArr, const char* command, size_t
     return;
 
 }
-

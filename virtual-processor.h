@@ -19,11 +19,13 @@ typedef enum {
     MY_TG = 9,
     MY_CTG = 10,
     MY_BREAK = 11,
+
     MY_IN = 12,
     MY_OUT = 13,
     MY_HLT = 14,
 
     MY_JMP = 15,
+
     MY_JA = 16,
     MY_JB = 17,
     MY_JAE = 18,
@@ -32,11 +34,9 @@ typedef enum {
     MY_JNE = 21,
     MY_JT = 22,
 
-    MY_PUSH_REG = 23,
-    MY_POP_REG = 24,
-
-    MY_CALL = 25,
-    MY_RET = 26
+    MY_CALL = 23,
+    MY_RET = 24,
+    MY_POP = 25
 } asmCommand;
 
 enum Register {
@@ -48,10 +48,17 @@ enum Register {
     REGISTER_COUNT = 4
 };
 
+enum ArgFlags {
+    ARG_IMMED_VALUE = 1 << 0,  // 001 = 1
+    ARG_REG         = 1 << 1,  // 010 = 2
+    ARG_MEM         = 1 << 2   // 100 = 4
+};
+
 struct files {
         char path[MAX_PATH_LENGTH];
         char asmProgramFile[MAX_PATH_LENGTH];
         char exeFile[MAX_PATH_LENGTH];
+        char binFile[MAX_PATH_LENGTH];
 };
 
 #ifdef CPU_DEBUG
@@ -98,12 +105,17 @@ struct asmProgramInfo {
     label* labels;
 };
 
+struct binaryInstruction {
+    int32_t opcode;
+    int32_t flags;
+    int32_t reg;
+    int32_t imm;
+};
+
 struct CPUInfo {
 
-    size_t textLength;
     size_t stringsCount;
-    char* textOfExeProgram;
-    char** programLines;
+    binaryInstruction* program;
 
     stack_t* stack;
 
@@ -122,26 +134,33 @@ struct CPUInfo {
 
 // Assembler
 
+// Assembler-work
 ErrorCode asmLoad(asmProgramInfo* asmData, char* asmProgramFile);
 ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData);
 ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData);
 void recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData);
-ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData);
+ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asmProgramInfo* asmProgramData);
 bool commandCondition (int commandIndex);
 void removeAsmComment(char* line);
-int getRegisterIndex(const char* name);
-void formCommandsArr(commandHash_t* commandsArr);
-void createCommandHashEl(commandHash_t* commandsArr, const char* command, size_t commandIndex);
-hash_t hashing(const char* str);
+ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm);
+ErrorCode writeCommand(FILE* exeFile, FILE* binFile,
+                       int opcode, int flags, int reg, int imm,
+                       int argsCount);
 
-//Labels
-
+// Labels
 ErrorCode loadLabels(label* labels);
 ErrorCode addLabel(label* labels, char* name, int address);
 int findLabel(const label* labels, const char* name);
 ErrorCode collectLabels(asmProgramInfo* asmData);
 ErrorCode resizeLabels(label* labels, int direction);
 
+// RegisterIndex
+int getRegisterIndex(const char* name);
+
+// Hashing commands
+void formCommandsArr(commandHash_t* commandsArr);
+void createCommandHashEl(commandHash_t* commandsArr, const char* command, size_t commandIndex);
+hash_t hashing(const char* str);
 
 // Disassembler
 
@@ -152,6 +171,7 @@ ErrorCode disassembler(files* usedFiles);
 ErrorCode readExeProgram(const char* fileName, struct CPUInfo* CPUData);
 ErrorCode readExeTextIntoSingleBuffer(const char* fileName, struct CPUInfo* CPUData);
 ErrorCode recordPtrStringsForExe(struct CPUInfo* CPUData);
+ErrorCode readBinaryProgram(const char* fileName, CPUInfo* CPUData);
 ErrorCode CPUexecute(CPUInfo* CPUData);
 ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile);
 ErrorCode cleanRegister(CPUInfo* CPUData);
@@ -167,7 +187,7 @@ ErrorCode printErrorIntoConsole(struct error_debug* debugLogInfo);
 ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData);
 
 ErrorCode setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
-ErrorCode setExeFilename(char* exeFile, const size_t maxPathLength, int argc, char* argv[]);
+ErrorCode setBinFilename(char* exeFile, const size_t maxPathLength, int argc, char* argv[]);
 void cancelBuffering();
 size_t calculateStringsCount(const char* text);
 

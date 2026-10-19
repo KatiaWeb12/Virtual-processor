@@ -67,13 +67,13 @@ size_t calculateStringsCount(const char* text) {
 
 ErrorCode setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]){
 
-    if(argc != 3){
+    if(argc != 4){
 
         error_debug debugLogInfo = {};
         ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Input-Error", ERR_INVALID_ARGUMENT);
         printErrorIntoConsole(&debugLogInfo);
 
-        printf("Type: input file, output file.\nPaths must be no longer than %d characters.\n", maxPathLength);
+        printf("Type: input file, output file.\nPaths must be no longer than %d characters.\n\n", maxPathLength);
 
         return ERR_INVALID_ARGUMENT;
     }
@@ -85,18 +85,18 @@ ErrorCode setFileNames(struct files* usedFiles, const size_t maxPathLength, int 
 
     sprintf(usedFiles->exeFile, "%s%s", PATH, argv[2]);
 
-    putchar('\n');
+    sprintf(usedFiles->binFile, "%s%s", PATH, argv[3]);
 
+    putchar('\n');
     printf("Path:        [%s]\n", usedFiles->path);
     printf("Input file:  [%s]\n", usedFiles->asmProgramFile);
     printf("Result file: [%s]\n", usedFiles->exeFile);
-
     putchar('\n');
 
     return ERR_OK;
 }
 
-ErrorCode setExeFilename(char* exeFile, const size_t maxPathLength, int argc, char* argv[]){
+ErrorCode setBinFilename(char* exeFile, const size_t maxPathLength, int argc, char* argv[]){
 
     if(argc != 2){
 
