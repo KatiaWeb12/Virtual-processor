@@ -13,25 +13,7 @@ ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount){
     return ERR_OK;
 }
 
-ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line){
-
-    if (sscanfResult != operationArgsCount) {
-
-        FCLOSE(file);
-
-        debugLog_t debugLogInfo = {};
-        LOG_STRUCT_FORMAT((&debugLogInfo), stk, function, line);
-        debugLogInfo.error = ERR_INVALID_DATA;
-        printErrorIntoConsole(&debugLogInfo);
-
-        return ERR_INVALID_DATA;
-    }
-
-    return ERR_OK;
-
-}
-
-ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo) {
+ErrorCode printErrorIntoConsole(struct error_debug* debugLogInfo) {
 
     if(debugLogInfo == NULL){
         return ERR_INVALID_ARGUMENT;
@@ -40,9 +22,11 @@ ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo) {
     printf("[%s] Function '%s' was completed with Error %d in file '%s' in line %d \n",
             debugLogInfo->time,
             debugLogInfo->function,
-            debugLogInfo->error,
+            debugLogInfo->errCode,
             debugLogInfo->file,
             debugLogInfo->line);
+
+    printf("ErrorMessage: %s \n", debugLogInfo->message);
 
     return ERR_OK;
 }
@@ -63,9 +47,8 @@ ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData){
 
 size_t calculateStringsCount(const char* text) {
 
-    if (text == NULL || *text == '\0') {
-        return 0;
-    }
+    assert(text);
+    assert(*text != '\0');
 
     size_t stringCount = 0;
 
@@ -82,29 +65,60 @@ size_t calculateStringsCount(const char* text) {
     return stringCount;
 }
 
-void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]){
+ErrorCode setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]){
 
     if(argc != 3){
-        printf("Input-Error\n");
-        printf("Type: path, input file, output file.\nPaths must be no longer than %d characters.\n", maxPathLength);
-        exit(1);
+
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Input-Error", ERR_INVALID_ARGUMENT);
+        printErrorIntoConsole(&debugLogInfo);
+
+        printf("Type: input file, output file.\nPaths must be no longer than %d characters.\n", maxPathLength);
+
+        return ERR_INVALID_ARGUMENT;
     }
 
     const char* PATH = "./used-files/";
-
     sprintf(usedFiles->path, "%s", PATH);
 
-    sprintf(usedFiles->asmProgramFile, "%s%s",
-            PATH, argv[1]);
+    sprintf(usedFiles->asmProgramFile, "%s%s", PATH, argv[1]);
 
-    sprintf(usedFiles->exeFile, "%s%s",
-            PATH, argv[2]);
+    sprintf(usedFiles->exeFile, "%s%s", PATH, argv[2]);
+
+    putchar('\n');
 
     printf("Path:        [%s]\n", usedFiles->path);
     printf("Input file:  [%s]\n", usedFiles->asmProgramFile);
     printf("Result file: [%s]\n", usedFiles->exeFile);
 
-    return;
+    putchar('\n');
+
+    return ERR_OK;
+}
+
+ErrorCode setExeFilename(char* exeFile, const size_t maxPathLength, int argc, char* argv[]){
+
+    if(argc != 2){
+
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Input-Error", ERR_INVALID_ARGUMENT);
+        printErrorIntoConsole(&debugLogInfo);
+
+        printf("Type: input file, output file.\nPaths must be no longer than %d characters.\n", maxPathLength);
+
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    const char* PATH = "./used-files/";
+    sprintf(exeFile, "%s%s", PATH, argv[1]);
+
+    putchar('\n');
+
+    printf("Exe-file: [%s]\n", exeFile);
+
+    putchar('\n');
+
+    return ERR_OK;
 }
 
 void cancelBuffering(){

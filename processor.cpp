@@ -1,8 +1,52 @@
+#include <TXLib.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+
 #include "../universal-features/error.h"
+#include "../universal-features/colors.h"
+#include "../Task5 stack/stack.cpp"
+#include "virtual-processor.h"
+#include "math-functions.cpp"
+#include "extra-functions.cpp"
 
 #define BG_RED "\033[41m"
 
-const int MAX_CALL_DEPTH = 256;
+int main(int argc, char* argv[]){
+
+    cancelBuffering();
+
+    // Processor
+
+    char exeFile[MAX_PATH_LENGTH] = {};
+    ErrorCode error = setExeFilename(exeFile, MAX_PATH_LENGTH, argc, argv);
+    if(error) return error;
+
+    struct CPUInfo CPUData = {};
+    struct stack_t stk = {};
+
+    error = CPULoad(&CPUData, &stk, exeFile);
+    if (error != ERR_OK) return error;
+
+    #ifdef CPU_DEBUG
+        CPUData.debugInfo = {
+            "CPUData",
+            __FILE__,
+            __func__,
+            __LINE__
+        };
+    #endif
+
+    error = CPUexecute(&CPUData);
+    if(error != ERR_OK) return error;
+
+    CPUDestroy(&CPUData);
+
+    return ERR_OK;
+}
 
 ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile){
 
@@ -36,7 +80,7 @@ ErrorCode readExeProgram(const char* fileName, CPUInfo* CPUData){
 
     readExeTextIntoSingleBuffer(fileName, CPUData);
     CPUData->stringsCount = calculateStringsCount(CPUData->textOfExeProgram);
-    recordPtrStringsForExe(CPUData);
+    recordPtrStringsForExe(CPUData); //TODO: ссылки
 
     return ERR_OK;
 
@@ -98,7 +142,6 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
     while (CPUData->IP < CPUData->stringsCount) {
 
         int sscanfResult = sscanf(CPUData->programLines[CPUData->IP], "%d %d", &command, &arg);
-
         if (sscanfResult < 1) return ERR_INVALID_DATA;
 
         switch(command){
@@ -388,7 +431,7 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
     return ERR_INVALID_DATA;
 }
 
-ErrorCode CPUDestroy(CPUInfo* CPUData)
+void CPUDestroy(CPUInfo* CPUData)
 {
 
     CPU_DUMP(CPUData, CPUData->stringsCount-1);
@@ -397,7 +440,7 @@ ErrorCode CPUDestroy(CPUInfo* CPUData)
     stackDestroy(CPUData->stack);
     stackDestroy(&CPUData->returnAddresses);
 
-    char* dataMemory = (char*)CPUData->programLines;
+    char* dataMemory = (char*)CPUData->programLines; //TODO: в free
     free(dataMemory);
 
     CPUData->textLength = 0;
@@ -409,7 +452,7 @@ ErrorCode CPUDestroy(CPUInfo* CPUData)
 
     printf(COLOR_RED "%s \n" COLOR_RESET, "CPU was destroyed");
 
-    return ERR_OK;
+    return;
 
 };
 
@@ -421,16 +464,6 @@ ErrorCode cleanRegister(CPUInfo* CPUData){
 
     return ERR_OK;
 
-}
-
-int getRegisterIndex(const char* name) {
-
-    if (strcmp(name, "RAX") == 0) return RAX;
-    if (strcmp(name, "RBX") == 0) return RBX;
-    if (strcmp(name, "RCX") == 0) return RCX;
-    if (strcmp(name, "RDX") == 0) return RDX;
-
-    return -1;
 }
 
 ErrorCode consoleInput(CPUInfo* CPUData){

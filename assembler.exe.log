@@ -1,0 +1,68 @@
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\assembler.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x26EC (Main). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00414FFE in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\assembler.exe: (anonymous namespace)::TX::_txOnSignal() at C:/Users/Kate/Desktop/downloads/TX/TXLib.h:11343
+# 1 0x76DD8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x76DDD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x76DD9D47 in C:\WINDOWS\System32\msvcrt.dll: assert()
+
+# 4 0x00436E26 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\assembler.exe: calculateStringsCount() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/extra-functions.cpp:51:
+
+     49: 
+     50:     assert(text);
+=>   51:     assert(*text == '\0');
+     52: 
+     53:     size_t stringCount = 0;
+
+# 5 0x0043742E in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\assembler.exe: readAsmProgram() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/assembler.cpp:87:
+
+     85:     if(error != ERR_OK) return error;
+     86: 
+=>   87:     asmProgramData->stringsCount = calculateStringsCount(asmProgramData->textOfAsmProgram);
+     88:     recordPtrStringsForAsm(asmProgramData);
+     89: 
+
+# 6 0x004372C3 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\assembler.exe: asmLoad() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/assembler.cpp:61:
+
+     59:     asmData->programLines = memory;
+     60: 
+=>   61:     ErrorCode error = readAsmProgram(asmProgramFile, asmData);
+     62:     if (error != ERR_OK) return error;
+     63: 
+
+# 7 0x00437136 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\assembler.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/assembler.cpp:30:
+
+     28:     struct asmProgramInfo asmProgramData = {};
+     29: 
+=>   30:     error = asmLoad(&asmProgramData, usedFiles.asmProgramFile);
+     31:     if (error != ERR_OK) return error;
+     32: 
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct 19 2026 12:50:36, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 19 2026 12:51:12
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\assembler.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------

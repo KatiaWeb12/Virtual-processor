@@ -1,0 +1,68 @@
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x2658 (Main), GetLastError(): 2 (Не удается найти указанный файл), errno: 2 (No such file or directory), _doserrno: 2 (No such file or directory). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00414FFE in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: (anonymous namespace)::TX::_txOnSignal() at C:/Users/Kate/Desktop/downloads/TX/TXLib.h:11343
+# 1 0x76DD8F03 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 2 0x76DDD3CB in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 3 0x76DD9D47 in C:\WINDOWS\System32\msvcrt.dll: assert()
+
+# 4 0x00436E00 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: calculateStringsCount() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/extra-functions.cpp:50:
+
+     48: size_t calculateStringsCount(const char* text) {
+     49: 
+=>   50:     assert(text);
+     51:     assert(*text != '\0');
+     52: 
+
+# 5 0x00437313 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: readExeProgram() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:88:
+
+     86: 
+     87:     readExeTextIntoSingleBuffer(fileName, CPUData);
+=>   88:     CPUData->stringsCount = calculateStringsCount(CPUData->textOfExeProgram);
+     89:     recordPtrStringsForExe(CPUData); //TODO: СЃСЃС‹Р»РєРё
+     90: 
+
+# 6 0x00437266 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPULoad() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:64:
+
+     62:     CPUData->programLines = memory;
+     63: 
+=>   64:     readExeProgram(exeProgramFile, CPUData);
+     65: 
+     66:     ErrorCode error = STACK_INIT(stk, 3);
+
+# 7 0x004371BC in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:37:
+
+     35:     struct stack_t stk = {};
+     36: 
+=>   37:     ErrorCode error = CPULoad(&CPUData, &stk, argv[1]);
+     38:     if (error != ERR_OK) return error;
+     39: 
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct 19 2026 13:07:01, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 19 2026 13:08:18
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------

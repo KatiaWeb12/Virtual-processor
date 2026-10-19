@@ -1,7 +1,10 @@
 // Constants
 const size_t MAX_PATH_LENGTH = 300;
 const size_t MAX_COMMAND_LENGTH = 300;
+const size_t COMMANDS_COUNT = 25;
 const size_t START_LABEL_COUNT = 5;
+const size_t RAM_CAPACITY = 100;
+const int    MAX_CALL_DEPTH = 256;
 
 // Types
 typedef enum {
@@ -59,8 +62,21 @@ struct debugCPU_t {
     const char* function;
     size_t line;
 };
-
 #endif
+
+struct error_debug {
+    const char* time;
+    const char* file;
+    const char* function;
+    size_t line;
+    const char* message;
+    ErrorCode errCode;
+};
+
+struct commandHash_t {
+    const char* commandName;
+    hash_t hash;
+};
 
 struct labelItem {
     char* labelName;
@@ -91,8 +107,9 @@ struct CPUInfo {
 
     stack_t* stack;
 
-    int registers[REGISTER_COUNT];
     size_t IP;
+    int registers[REGISTER_COUNT];
+    int RAM[RAM_CAPACITY];
 
     stack_t returnAddresses;
 
@@ -108,10 +125,14 @@ struct CPUInfo {
 ErrorCode asmLoad(asmProgramInfo* asmData, char* asmProgramFile);
 ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData);
 ErrorCode readAsmTextIntoSingleBuffer(const char* fileName, struct asmProgramInfo* asmProgramData);
-ErrorCode recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData);
+void recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData);
 ErrorCode assembler(char* fileName, struct asmProgramInfo* asmProgramData);
-bool commandCondition (const char* commandName);
+bool commandCondition (int commandIndex);
 void removeAsmComment(char* line);
+int getRegisterIndex(const char* name);
+void formCommandsArr(commandHash_t* commandsArr);
+void createCommandHashEl(commandHash_t* commandsArr, const char* command, size_t commandIndex);
+hash_t hashing(const char* str);
 
 //Labels
 
@@ -134,7 +155,7 @@ ErrorCode recordPtrStringsForExe(struct CPUInfo* CPUData);
 ErrorCode CPUexecute(CPUInfo* CPUData);
 ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile);
 ErrorCode cleanRegister(CPUInfo* CPUData);
-ErrorCode CPUDestroy(CPUInfo* CPUData);
+void CPUDestroy(CPUInfo* CPUData);
 ErrorCode consoleInput(CPUInfo* CPUData);
 bool jumpType(int el1, int el2, int command);
 
@@ -142,10 +163,11 @@ bool jumpType(int el1, int el2, int command);
 
 ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount);
 ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line);
-ErrorCode printErrorIntoConsole(struct debugLog_t* debugLogInfo);
+ErrorCode printErrorIntoConsole(struct error_debug* debugLogInfo);
 ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData);
 
-void setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
+ErrorCode setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
+ErrorCode setExeFilename(char* exeFile, const size_t maxPathLength, int argc, char* argv[]);
 void cancelBuffering();
 size_t calculateStringsCount(const char* text);
 
@@ -164,10 +186,6 @@ ErrorCode cosCommand(struct stack_t* stack);
 ErrorCode tgCommand(struct stack_t* stack);
 ErrorCode ctgCommand(struct stack_t* stack);
 double degreesToRadians(double degrees);
-
-
-int getRegisterIndex(const char* name);
-
 
 #ifdef CPU_DEBUG
     ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine);
@@ -191,4 +209,13 @@ int getRegisterIndex(const char* name);
     } while (0)                                           \
 
 
-
+#define ERROR_STRUCT_FORMAT(ptr, funcName, lineNum, msgValue, codeValue) \
+    do {                                                                 \
+        char timeString[32] = {};                                 \
+        (ptr)->time = getOperationTime(timeString, sizeof(timeString));  \
+        (ptr)->file = __FILE__;                                          \
+        (ptr)->function = (funcName);                                    \
+        (ptr)->line = (lineNum);                                         \
+        (ptr)->message = (msgValue);                                     \
+        (ptr)->errCode = (codeValue);                                    \
+    } while (0)
