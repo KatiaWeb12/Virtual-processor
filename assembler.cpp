@@ -246,7 +246,11 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
 
                         error = parsePushPopArguments(argument, &flags, &reg, &imm);
 
-                        if (error != ERR_OK || (flags != ARG_REG && flags != (ARG_MEM | ARG_REG))) {
+                        if (error != ERR_OK ||
+                            (flags !=  ARG_REG &&
+                             flags != (ARG_MEM | ARG_REG) &&
+                             flags != (ARG_MEM | ARG_IMMED_VALUE) &&
+                             flags != (ARG_MEM | ARG_REG | ARG_IMMED_VALUE))) {
 
                             error_debug debugLogInfo = {};
                             ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect POP command", ERR_INVALID_ARGUMENT);
@@ -446,6 +450,14 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
                         else if (commandIndex == 24)  command = MY_JT;
 
                         error = writeCommand(exeFile, binFile, command, 0, 0, address, 2);
+                        if (error != ERR_OK) break;
+                    }
+                    else if (commandIndex == 25) { // DRAW
+
+                        error = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
+                        if (error != ERR_OK) break;
+
+                        error = writeCommand(exeFile, binFile, MY_DRAW, 0, 0, 0, 1);
                         if (error != ERR_OK) break;
                     }
 
@@ -831,7 +843,7 @@ void formCommandsArr(commandHash_t* commandsArr){
 
     const char* commandsNames[] = {"PUSH", "POP", "ADD", "SUB", "MUL", "DIV", "SQUARE", "SIN", "COS",
                                    "TG", "CTG", "BREAK", "IN", "OUT", "HLT", "JMP", "CALL", "RET",
-                                   "JA", "JB", "JAE", "JBE", "JE", "JNE", "JT"};
+                                   "JA", "JB", "JAE", "JBE", "JE", "JNE", "JT", "DRAW"};
 
     for(size_t i = 0; i < sizeof(commandsNames) / sizeof(commandsNames[0]); i++){
         createCommandHashEl(commandsArr, commandsNames[i], i);

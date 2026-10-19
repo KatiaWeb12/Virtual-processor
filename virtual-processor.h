@@ -1,7 +1,7 @@
 // Constants
 const size_t MAX_PATH_LENGTH = 300;
 const size_t MAX_COMMAND_LENGTH = 300;
-const size_t COMMANDS_COUNT = 25;
+const size_t COMMANDS_COUNT = 26;
 const size_t START_LABEL_COUNT = 5;
 const size_t RAM_CAPACITY = 100;
 const int    MAX_CALL_DEPTH = 256;
@@ -36,7 +36,8 @@ typedef enum {
 
     MY_CALL = 23,
     MY_RET = 24,
-    MY_POP = 25
+    MY_POP = 25,
+    MY_DRAW = 26
 } asmCommand;
 
 enum Register {
@@ -178,6 +179,10 @@ ErrorCode cleanRegister(CPUInfo* CPUData);
 void CPUDestroy(CPUInfo* CPUData);
 ErrorCode consoleInput(CPUInfo* CPUData);
 bool jumpType(int el1, int el2, int command);
+
+// Draw
+ErrorCode drawPixel(CPUInfo* CPUData);
+void createGraphicWindow();
 
 // Extra functions
 

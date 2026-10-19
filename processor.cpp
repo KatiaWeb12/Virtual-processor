@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <math.h>
 
 #include "../universal-features/error.h"
 #include "../universal-features/colors.h"
@@ -40,12 +41,14 @@ int main(int argc, char* argv[]){
         };
     #endif
 
+    createGraphicWindow();
+
     error = CPUexecute(&CPUData);
-    if(error != ERR_OK) return error;
+    if(error == ERR_OK) txSleep(5000);
 
     CPUDestroy(&CPUData);
 
-    return ERR_OK;
+    return error;
 }
 
 ErrorCode CPULoad(CPUInfo* CPUData, stack_t* stk, char* exeProgramFile){
@@ -423,6 +426,13 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
 
                 continue;
             }
+            case MY_DRAW: {
+
+                ErrorCode error = drawPixel(CPUData);
+                if (error != ERR_OK) return error;
+
+                break;
+            }
             default:{
 
                 printf("Unknown command: %d\n", command);
@@ -571,3 +581,30 @@ ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
     return ERR_OK;
 }
 #endif
+
+// Drawing
+
+void createGraphicWindow(){
+
+    txCreateWindow(800, 600);
+
+    txSetFillColor(TX_WHITE);
+    txClear();
+
+    txSetColor(TX_BLUE);
+}
+
+ErrorCode drawPixel(CPUInfo* CPUData) {
+
+    assert(CPUData);
+
+    int x = CPUData->RAM[0];
+    int y = CPUData->RAM[1];
+
+    txSetColor(TX_BLUE);
+    txSetFillColor(TX_BLUE);
+
+    txRectangle(x - 3, y - 3, x + 3, y + 3);
+
+    return ERR_OK;
+}

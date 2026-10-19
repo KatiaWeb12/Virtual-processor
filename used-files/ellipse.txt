@@ -1,0 +1,47 @@
+; Center (400, 300)
+; Horizontal radius: 250
+; Vertical radius: 150
+
+PUSH 0
+POP RAX
+
+:loop
+
+PUSH RAX
+PUSH 360
+JE :end
+
+; X = 400 + 250 * COS(RAX)
+
+PUSH RAX
+COS
+PUSH 250
+MUL
+PUSH 400
+ADD
+POP [0]
+
+; Y = 300 + 150 * SIN(RAX)
+
+PUSH RAX
+SIN
+PUSH 250
+MUL
+PUSH 300
+ADD
+POP [1]
+
+DRAW
+
+; RAX = RAX + 1
+
+PUSH RAX
+PUSH 1
+ADD
+POP RAX
+
+JMP :loop
+
+:end
+
+HLT
