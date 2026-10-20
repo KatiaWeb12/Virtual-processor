@@ -163,14 +163,13 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
                 }
 
                 ErrorCode error = stackPush(CPUData->stack, res * 1000);
-
-                if (error != ERR_OK)
-                    return error;
+                if (error != ERR_OK) return error;
 
                 break;
             }
 
             case MY_POP: {
+
                 if (flags != ARG_REG &&
                     flags != (ARG_MEM | ARG_REG) &&
                     flags != (ARG_MEM | ARG_IMMED_VALUE) &&

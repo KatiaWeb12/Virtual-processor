@@ -606,8 +606,7 @@ ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm)
     // PUSH 1
     char rest = '\0';
 
-    if (sscanf(buffer, "%d %c", imm, &rest) != 1)
-        return ERR_INVALID_ARGUMENT;
+    if (sscanf(buffer, "%d %c", imm, &rest) != 1) return ERR_INVALID_ARGUMENT;
 
     *flags |= ARG_IMMED_VALUE;
 
