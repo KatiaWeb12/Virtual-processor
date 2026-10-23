@@ -1,0 +1,24 @@
+IN
+
+CALL :factorial
+
+OUT
+HLT
+
+:factorial
+POP RBX
+PUSH RBX
+
+POP RAX             ; Извлекаем аргумент n в регистр RAX
+
+PUSH 1
+PUSH RBX
+JBE :base           ; Если n <= 1, переходим к базовому случаю
+
+;PUSH RAX            ; Сохраняем n в основном стеке
+
+PUSH 1
+PUSH RAX
+SUB                 ; Вычисляем n - 1
+
+CALL :factorial     ; Рекурсивно вычисляем (n - 1)!

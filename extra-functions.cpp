@@ -1,6 +1,13 @@
 #include <time.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <assert.h>
+#include <string.h>
+#include <math.h>
 
 #include "../universal-features/error.h"
+#include "../Task5 stack/stack.h"
+#include "virtual-processor.h"
 
 // Error-processing and debugging
 

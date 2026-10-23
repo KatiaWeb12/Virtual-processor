@@ -1,0 +1,29 @@
+IN
+CALL :factorial
+OUT
+HLT
+
+:factorial
+    POP RAX
+
+    PUSH 1
+    PUSH RAX
+    JBE :base
+
+    PUSH RAX
+    POP RBX
+
+    PUSH RBX           ; Сохраняем n
+
+    PUSH 1              ; Получаем n - 1
+    PUSH RAX
+    SUB
+
+    CALL :factorial
+
+    MUL
+    RET
+
+:base
+    PUSH 1
+    RET

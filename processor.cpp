@@ -26,14 +26,22 @@ int main(int argc, char* argv[]){
     ErrorCode error = setBinFilename(exeFile, MAX_PATH_LENGTH, argc, argv);
     if(error) return error;
 
-    struct CPUInfo CPUData = {};
+    CPUInfo* memory = (CPUInfo*)calloc(1, sizeof(CPUInfo));
+    if (memory == NULL) {
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Not enough memory", ERR_OUT_OF_MEMORY);
+        printErrorIntoConsole(&debugLogInfo);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    struct CPUInfo* CPUData = memory;
     struct stack_t stk = {};
 
-    error = CPULoad(&CPUData, &stk, exeFile);
+    error = CPULoad(CPUData, &stk, exeFile);
     if (error != ERR_OK) return error;
 
     #ifdef CPU_DEBUG
-        CPUData.debugInfo = {
+        CPUData->debugInfo = {
             "CPUData",
             __FILE__,
             __func__,
@@ -41,12 +49,10 @@ int main(int argc, char* argv[]){
         };
     #endif
 
-    createGraphicWindow();
+    error = CPUexecute(CPUData);
 
-    error = CPUexecute(&CPUData);
-    if(error == ERR_OK) txSleep(5000);
+    CPUDestroy(CPUData);
 
-    CPUDestroy(&CPUData);
 
     return error;
 }
@@ -95,8 +101,24 @@ ErrorCode readBinaryProgram(const char* fileName, CPUInfo* CPUData) {
         return ERR_FILE_NOT_FOUND;
     }
 
-    struct stat fileInfo;
+    struct stat fileInfo = {};
+    if (stat(fileName, &fileInfo) != 0) {
+    printf("ERROR: Cannot get file size: %s\n", fileName);
+    FCLOSE(file);
+    return ERR_OK;
+}
     long fileSize = fileInfo.st_size;
+
+    if (fileSize <= 0) {
+
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "", ERR_INVALID_FORMAT);
+        printErrorIntoConsole(&debugLogInfo);
+        printf("Invalid binary file size: %ld\n", fileSize);
+
+        FCLOSE(file);
+        return ERR_INVALID_FORMAT;
+    }
 
     size_t commandsCount = (size_t)fileSize / sizeof(binaryInstruction);
 
@@ -117,6 +139,7 @@ ErrorCode readBinaryProgram(const char* fileName, CPUInfo* CPUData) {
 
     CPUData->program = memory;
     CPUData->stringsCount = commandsCount;
+
 
     return ERR_OK;
 }
@@ -196,8 +219,7 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
                 int res = 0;
 
                 ErrorCode error = stackPop(CPUData->stack, &res);
-                if (error != ERR_OK)
-                    return error;
+                if (error != ERR_OK) return error;
 
                 if (flags & ARG_MEM) {
                     CPUData->RAM[address] = (int)(res / 1000);
@@ -432,6 +454,12 @@ ErrorCode CPUexecute(CPUInfo* CPUData){
 
                 break;
             }
+            case MY_SHOWWINDOW: {
+
+                createGraphicWindow();
+
+                break;
+            }
             default:{
 
                 printf("Unknown command: %d\n", command);
@@ -463,6 +491,8 @@ void CPUDestroy(CPUInfo* CPUData)
     CPUData->stack = NULL;
     CPUData->stringsCount = 0;
     CPUData->IP = 0;
+
+    free(CPUData);
 
     printf(COLOR_RED "%s \n" COLOR_RESET, "CPU was destroyed");
 
@@ -553,9 +583,9 @@ ErrorCode CPUDump(const struct CPUInfo* CPUData, size_t currentLine){
     putchar('\n');
 
     printf("\tregisters[%p]{    \n", CPUData->registers);
-
-    for(size_t i = 0; i < REGISTER_COUNT; i++){
-        printStackElem(i, (CPUData->registers)[i]);
+    const char* registerNames[] = {"RAX", "RBX", "RCX", "RDX"};
+    for (size_t i = 0; i < REGISTER_COUNT; i++) {
+        printf("\t\t%s = %d\n", registerNames[i], CPUData->registers[i]);
     }
 
     printf("\t}\n\n");
@@ -599,13 +629,19 @@ ErrorCode drawPixel(CPUInfo* CPUData) {
 
     assert(CPUData);
 
-    int x = CPUData->RAM[0];
-    int y = CPUData->RAM[1];
+    const int WIDTH  = 800;
+    const int HEIGHT = 600;
 
-    txSetColor(TX_BLUE);
-    txSetFillColor(TX_BLUE);
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
 
-    txRectangle(x - 3, y - 3, x + 3, y + 3);
+            int address = y * WIDTH + x;
+
+            if (CPUData->RAM[address] != 0) {
+                txSetPixel(x, y, TX_BLUE);
+            }
+        }
+    }
 
     return ERR_OK;
 }

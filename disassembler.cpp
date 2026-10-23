@@ -41,6 +41,7 @@ const char* getCommandName(int opcode) {
         case MY_JNE:    return "JNE";
         case MY_JT:     return "JT";
         case MY_DRAW:   return "DRAW";
+        case MY_SHOWWINDOW: return "SHOWWINDOW";
         default:        return NULL;
     }
 }

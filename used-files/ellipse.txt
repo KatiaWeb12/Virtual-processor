@@ -1,47 +1,94 @@
-; Center (400, 300)
-; Horizontal radius: 250
-; Vertical radius: 150
+; Center: (400, 300)
+; Radius: 200
+; Image 800 * 600
 
-PUSH 0
+; RAX = X
+; RBX = Y
+; RCX = DX / RAM address
+; RDX = DY
+
+; Y = 100
+PUSH 100
+POP RBX
+
+:y_loop
+
+; X = 200
+PUSH 200
 POP RAX
 
-:loop
+:x_loop
 
-PUSH RAX
-PUSH 360
-JE :end
-
-; X = 400 + 250 * COS(RAX)
-
-PUSH RAX
-COS
-PUSH 250
-MUL
+; DX = X - 400
 PUSH 400
-ADD
-POP [0]
-
-; Y = 300 + 150 * SIN(RAX)
-
 PUSH RAX
-SIN
-PUSH 150
-MUL
+SUB
+POP RCX
+
+; DY = Y - 300
 PUSH 300
+PUSH RBX
+SUB
+POP RDX
+
+; DX^2
+PUSH RCX
+PUSH RCX
+MUL
+
+; DY^2
+PUSH RDX
+PUSH RDX
+MUL
+
+; DX^2 + DY^2
 ADD
-POP [1]
 
-DRAW
+; Check DX^2 + DY^2 <= R^2(40000)
+PUSH 40000
+JAE :draw
 
-; RAX = RAX + 1
+JMP :next
 
+:draw
+
+; RCX = RAM address = Y * 800 + X
+PUSH RBX
+PUSH 800
+MUL
+PUSH RAX
+ADD
+POP RCX
+
+; RAM[address] = 1
+PUSH 1
+POP [RCX]
+
+:next
+
+; X += 1
 PUSH RAX
 PUSH 1
 ADD
 POP RAX
 
-JMP :loop
+; Continue while X <= 600
+PUSH 600
+PUSH RAX
+JBE :x_loop
 
-:end
+; Draw the completed row
+DRAW
+
+; Y += 1
+PUSH RBX
+PUSH 1
+ADD
+POP RBX
+
+; Continue while Y <= 500
+PUSH 500
+PUSH RBX
+JBE :y_loop
 
 HLT

@@ -1,0 +1,35 @@
+IN
+
+CALL :factorial
+
+OUT
+HLT
+
+:factorial
+    POP RAX         ;
+    PUSH RBX        ;
+
+    PUSH 1
+    PUSH RAX
+    JBE :base
+
+    PUSH RAX
+    POP RBX
+
+    PUSH 1
+    PUSH RAX
+    SUB
+
+    CALL :factorial
+    PUSH RBX
+    MUL
+
+    POP RAX
+    POP RBX
+    PUSH RAX
+    RET
+
+:base
+    POP RBX
+    PUSH 1
+    RET

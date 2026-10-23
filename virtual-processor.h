@@ -1,9 +1,14 @@
+#ifndef VIRTUAL_PROCESSOR_H
+#define VIRTUAL_PROCESSOR_H
+
+typedef hash_t (*hashFunction_t)(const char* str);
+
 // Constants
 const size_t MAX_PATH_LENGTH = 300;
 const size_t MAX_COMMAND_LENGTH = 300;
-const size_t COMMANDS_COUNT = 26;
+const size_t COMMANDS_COUNT = 27;
 const size_t START_LABEL_COUNT = 5;
-const size_t RAM_CAPACITY = 9;
+const size_t RAM_CAPACITY = 800 * 600;
 const int    MAX_CALL_DEPTH = 256;
 
 // Types
@@ -37,7 +42,8 @@ typedef enum {
     MY_CALL = 23,
     MY_RET = 24,
     MY_POP = 25,
-    MY_DRAW = 26
+    MY_DRAW = 26,
+    MY_SHOWWINDOW = 27
 } asmCommand;
 
 enum Register {
@@ -147,6 +153,7 @@ ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm)
 ErrorCode writeCommand(FILE* exeFile, FILE* binFile,
                        int opcode, int flags, int reg, int imm,
                        int argsCount);
+int findCommand(const char* commandName, hashFunction_t hashFunction);
 
 // Labels
 ErrorCode loadLabels(label* labels);
@@ -233,12 +240,12 @@ double degreesToRadians(double degrees);
         if (fclose(file) != 0) {                          \
             printf("Warning: the file wasn't closed\n");  \
         }                                                 \
-    } while (0)                                           \
+    } while (0)
 
 
 #define ERROR_STRUCT_FORMAT(ptr, funcName, lineNum, msgValue, codeValue) \
     do {                                                                 \
-        char timeString[32] = {};                                 \
+        char timeString[32] = {};                                        \
         (ptr)->time = getOperationTime(timeString, sizeof(timeString));  \
         (ptr)->file = __FILE__;                                          \
         (ptr)->function = (funcName);                                    \
@@ -246,3 +253,5 @@ double degreesToRadians(double degrees);
         (ptr)->message = (msgValue);                                     \
         (ptr)->errCode = (codeValue);                                    \
     } while (0)
+
+#endif // VIRTUAL_PROCESSOR_H
