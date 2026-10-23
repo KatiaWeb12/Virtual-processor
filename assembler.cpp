@@ -845,44 +845,6 @@ void formCommandHashesMassive(hash_t* hashesArr){
     return;
 }
 
-// int findCommand(const char* commandName, hashFunction_t hashFunction) {
-//
-//     assert(commandName);
-//     assert(hashFunction);
-//
-//     hash_t hash = hashFunction(commandName);
-//
-//     if( hash == hashing("PUSH"))       return MY_PUSH;
-//     if( hash == hashing("POP"))        return MY_POP;
-//     if( hash == hashing("ADD"))        return MY_ADD;
-//     if( hash == hashing("SUB"))        return MY_SUB;
-//     if( hash == hashing("MUL"))        return MY_MUL;
-//     if( hash == hashing("DIV"))        return MY_DIV;
-//     if( hash == hashing("SQUARE"))     return MY_SQUARE;
-//     if( hash == hashing("SIN"))        return MY_SIN;
-//     if( hash == hashing("COS"))        return MY_COS;
-//     if( hash == hashing("TG"))         return MY_TG;
-//     if( hash == hashing("CTG"))        return MY_CTG;
-//     if( hash == hashing("BREAK"))      return MY_BREAK;
-//     if( hash == hashing("IN"))         return MY_IN;
-//     if( hash == hashing("OUT"))        return MY_OUT;
-//     if( hash == hashing("HLT"))        return MY_HLT;
-//     if( hash == hashing("JMP"))        return MY_JMP;
-//     if( hash == hashing("CALL"))       return MY_CALL;
-//     if( hash == hashing("RET"))        return MY_RET;
-//     if( hash == hashing("JA"))         return MY_JA;
-//     if( hash == hashing("JB"))         return MY_JB;
-//     if( hash == hashing("JAE"))        return MY_JAE;
-//     if( hash == hashing("JBE"))        return MY_JBE;
-//     if( hash == hashing("JE"))         return MY_JE;
-//     if( hash == hashing("JNE"))        return MY_JNE;
-//     if( hash == hashing("JT"))         return MY_JT;
-//     if( hash == hashing("DRAW"))       return MY_DRAW;
-//     if( hash == hashing("SHOWWINDOW")) return MY_SHOWWINDOW;
-//
-//     return -1;
-// }
-
 int findCommand(const char* commandName, hashFunction_t hashFunction, hash_t* hashesArr) {
 
     assert(commandName);

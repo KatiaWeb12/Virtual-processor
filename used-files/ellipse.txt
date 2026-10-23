@@ -78,7 +78,6 @@ PUSH 600
 PUSH RAX
 JBE :x_loop
 
-; Draw the completed row
 DRAW
 
 ; Y += 1

@@ -632,16 +632,29 @@ ErrorCode drawPixel(CPUInfo* CPUData) {
     const int WIDTH  = 800;
     const int HEIGHT = 600;
 
+    if (txWindow() == NULL) return ERR_INVALID_DATA;
+
+    RGBQUAD* pixels = NULL;
+
+    HDC image = txCreateDIBSection(WIDTH, HEIGHT, &pixels);
+
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
 
             int address = y * WIDTH + x;
 
-            if (CPUData->RAM[address] != 0) {
-                txSetPixel(x, y, TX_BLUE);
-            }
+            COLORREF color = CPUData->RAM[address] != 0 ? TX_BLUE : TX_WHITE;
+
+            pixels[address].rgbRed   = GetRValue(color);
+            pixels[address].rgbGreen = GetGValue(color);
+            pixels[address].rgbBlue  = GetBValue(color);
+            pixels[address].rgbReserved = 0;
         }
     }
+
+    txBitBlt(txDC(), 0, 0, WIDTH, HEIGHT, image);
+
+    txDeleteDC(image);
 
     return ERR_OK;
 }
