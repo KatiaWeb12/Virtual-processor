@@ -6,18 +6,18 @@ OUT
 HLT
 
 :factorial
-    POP RAX         ;
-    PUSH RBX        ;
+    POP RAX
+    PUSH RBX        ; кладём RBX на стек
 
     PUSH 1
     PUSH RAX
     JBE :base
 
     PUSH RAX
-    POP RBX
+    POP RBX         ; сохраняем n в RBX
 
     PUSH 1
-    PUSH RAX
+    PUSH RAX        ; вычисляем n - 1
     SUB
 
     CALL :factorial
@@ -25,8 +25,8 @@ HLT
     MUL
 
     POP RAX
-    POP RBX
-    PUSH RAX
+    POP RBX     ; восстанавливаем предыдущее значение RBX (из строки 10)
+    PUSH RAX    ; возвращаем результат в стек
     RET
 
 :base

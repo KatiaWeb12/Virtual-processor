@@ -190,6 +190,8 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
         return ERR_FILE_NOT_FOUND;
     };
 
+    hash_t hashesArr[COMMANDS_COUNT] = {};
+    formCommandHashesMassive(hashesArr);
     for(size_t i = 0; i < asmProgramData->stringsCount; i++){
 
         char* line = asmProgramData->programLines[i];
@@ -202,7 +204,7 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
         if (sscanfResult <= 0) continue;
         if (commandName[0] == ':') continue;
 
-        int commandIndex = findCommand(commandName, hashing);
+        int commandIndex = findCommand(commandName, hashing, hashesArr);
 
         if (commandIndex == MY_PUSH) {
 
@@ -232,11 +234,7 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
 
             error = parsePushPopArguments(argument, &flags, &reg, &imm);
 
-            if (error != ERR_OK ||
-                (flags !=  ARG_REG &&
-                    flags != (ARG_MEM | ARG_REG) &&
-                    flags != (ARG_MEM | ARG_IMMED_VALUE) &&
-                    flags != (ARG_MEM | ARG_REG | ARG_IMMED_VALUE))) { // TODO isPopAvalible
+            if (isPopAvailable(error, flags)) {
 
                 error_debug debugLogInfo = {};
                 ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect POP command", ERR_INVALID_ARGUMENT);
@@ -448,13 +446,11 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
         }
         else if (commandIndex == MY_SHOWWINDOW) {
 
-            error = checkAsmOperation(sscanfResult, exeFile, 1,
-                                                __func__, __LINE__);
+            error = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
 
             if (error != ERR_OK) break;
 
-            error = writeCommand(exeFile, binFile,
-                                            MY_SHOWWINDOW, 0, 0, 0, 1);
+            error = writeCommand(exeFile, binFile, MY_SHOWWINDOW, 0, 0, 0, 1);
 
             if (error != ERR_OK) break;
         }
@@ -834,53 +830,102 @@ hash_t hashing(const char* str) {
     return hash;
 }
 
-void createCommandHashEl(commandHash_t* commandsArr, const char* command, size_t commandIndex){
+void formCommandHashesMassive(hash_t* hashesArr){
 
-    assert(commandsArr);
-    assert(command);
+    assert(hashesArr);
 
-    commandsArr[commandIndex] = {};
-    commandsArr[commandIndex].commandName = command;
-    commandsArr[commandIndex].hash = hashing(command);
+    hash_t hashes[] = {hashing("PUSH"), hashing("ADD"), hashing("SUB"), hashing("MUL"), hashing("DIV"), hashing("SQUARE"),
+                hashing("SIN"), hashing("COS"), hashing("TG"), hashing("CTG"), hashing("BREAK"), hashing("IN"),
+                hashing("OUT"), hashing("HLT"), hashing("JMP"), hashing("JA"), hashing("JB"), hashing("JAE"),
+                hashing("JBE"), hashing("JE"), hashing("JNE"), hashing("JT"), hashing("CALL"), hashing("RET"),
+                hashing("POP"), hashing("DRAW"), hashing("SHOWWINDOW")};
+
+    memcpy(hashesArr, hashes, sizeof(hashes));
 
     return;
-
 }
 
-int findCommand(const char* commandName, hashFunction_t hashFunction) {
+// int findCommand(const char* commandName, hashFunction_t hashFunction) {
+//
+//     assert(commandName);
+//     assert(hashFunction);
+//
+//     hash_t hash = hashFunction(commandName);
+//
+//     if( hash == hashing("PUSH"))       return MY_PUSH;
+//     if( hash == hashing("POP"))        return MY_POP;
+//     if( hash == hashing("ADD"))        return MY_ADD;
+//     if( hash == hashing("SUB"))        return MY_SUB;
+//     if( hash == hashing("MUL"))        return MY_MUL;
+//     if( hash == hashing("DIV"))        return MY_DIV;
+//     if( hash == hashing("SQUARE"))     return MY_SQUARE;
+//     if( hash == hashing("SIN"))        return MY_SIN;
+//     if( hash == hashing("COS"))        return MY_COS;
+//     if( hash == hashing("TG"))         return MY_TG;
+//     if( hash == hashing("CTG"))        return MY_CTG;
+//     if( hash == hashing("BREAK"))      return MY_BREAK;
+//     if( hash == hashing("IN"))         return MY_IN;
+//     if( hash == hashing("OUT"))        return MY_OUT;
+//     if( hash == hashing("HLT"))        return MY_HLT;
+//     if( hash == hashing("JMP"))        return MY_JMP;
+//     if( hash == hashing("CALL"))       return MY_CALL;
+//     if( hash == hashing("RET"))        return MY_RET;
+//     if( hash == hashing("JA"))         return MY_JA;
+//     if( hash == hashing("JB"))         return MY_JB;
+//     if( hash == hashing("JAE"))        return MY_JAE;
+//     if( hash == hashing("JBE"))        return MY_JBE;
+//     if( hash == hashing("JE"))         return MY_JE;
+//     if( hash == hashing("JNE"))        return MY_JNE;
+//     if( hash == hashing("JT"))         return MY_JT;
+//     if( hash == hashing("DRAW"))       return MY_DRAW;
+//     if( hash == hashing("SHOWWINDOW")) return MY_SHOWWINDOW;
+//
+//     return -1;
+// }
+
+int findCommand(const char* commandName, hashFunction_t hashFunction, hash_t* hashesArr) {
 
     assert(commandName);
     assert(hashFunction);
+    assert(hashesArr);
 
     hash_t hash = hashFunction(commandName);
 
-    if( hash == hashing("PUSH"))       return MY_PUSH;
-    if( hash == hashing("POP"))        return MY_POP;
-    if( hash == hashing("ADD"))        return MY_ADD;
-    if( hash == hashing("SUB"))        return MY_SUB;
-    if( hash == hashing("MUL"))        return MY_MUL;
-    if( hash == hashing("DIV"))        return MY_DIV;
-    if( hash == hashing("SQUARE"))     return MY_SQUARE;
-    if( hash == hashing("SIN"))        return MY_SIN;
-    if( hash == hashing("COS"))        return MY_COS;
-    if( hash == hashing("TG"))         return MY_TG;
-    if( hash == hashing("CTG"))        return MY_CTG;
-    if( hash == hashing("BREAK"))      return MY_BREAK;
-    if( hash == hashing("IN"))         return MY_IN;
-    if( hash == hashing("OUT"))        return MY_OUT;
-    if( hash == hashing("HLT"))        return MY_HLT;
-    if( hash == hashing("JMP"))        return MY_JMP;
-    if( hash == hashing("CALL"))       return MY_CALL;
-    if( hash == hashing("RET"))        return MY_RET;
-    if( hash == hashing("JA"))         return MY_JA;
-    if( hash == hashing("JB"))         return MY_JB;
-    if( hash == hashing("JAE"))        return MY_JAE;
-    if( hash == hashing("JBE"))        return MY_JBE;
-    if( hash == hashing("JE"))         return MY_JE;
-    if( hash == hashing("JNE"))        return MY_JNE;
-    if( hash == hashing("JT"))         return MY_JT;
-    if( hash == hashing("DRAW"))       return MY_DRAW;
-    if( hash == hashing("SHOWWINDOW")) return MY_SHOWWINDOW;
+    if( hash == hashesArr[MY_PUSH - 1])     return MY_PUSH;
+    if( hash == hashesArr[MY_POP - 1])        return MY_POP;
+    if( hash == hashesArr[MY_ADD - 1])        return MY_ADD;
+    if( hash == hashesArr[MY_SUB - 1])        return MY_SUB;
+    if( hash == hashesArr[MY_MUL - 1])        return MY_MUL;
+    if( hash == hashesArr[MY_DIV - 1])        return MY_DIV;
+    if( hash == hashesArr[MY_SQUARE - 1])     return MY_SQUARE;
+    if( hash == hashesArr[MY_SIN - 1])        return MY_SIN;
+    if( hash == hashesArr[MY_COS - 1])        return MY_COS;
+    if( hash == hashesArr[MY_TG - 1])         return MY_TG;
+    if( hash == hashesArr[MY_CTG - 1])        return MY_CTG;
+    if( hash == hashesArr[MY_BREAK - 1])      return MY_BREAK;
+    if( hash == hashesArr[MY_IN - 1])         return MY_IN;
+    if( hash == hashesArr[MY_OUT - 1])        return MY_OUT;
+    if( hash == hashesArr[MY_HLT - 1])        return MY_HLT;
+    if( hash == hashesArr[MY_JMP - 1])        return MY_JMP;
+    if( hash == hashesArr[MY_CALL - 1])       return MY_CALL;
+    if( hash == hashesArr[MY_RET - 1])        return MY_RET;
+    if( hash == hashesArr[MY_JA - 1])         return MY_JA;
+    if( hash == hashesArr[MY_JB - 1])         return MY_JB;
+    if( hash == hashesArr[MY_JAE - 1])        return MY_JAE;
+    if( hash == hashesArr[MY_JBE - 1])        return MY_JBE;
+    if( hash == hashesArr[MY_JE - 1])         return MY_JE;
+    if( hash == hashesArr[MY_JNE - 1])        return MY_JNE;
+    if( hash == hashesArr[MY_JT - 1])         return MY_JT;
+    if( hash == hashesArr[MY_DRAW - 1])       return MY_DRAW;
+    if( hash == hashesArr[MY_SHOWWINDOW - 1]) return MY_SHOWWINDOW;
 
     return -1;
+}
+
+bool isPopAvailable(ErrorCode error, int32_t flags){
+    return error != ERR_OK ||
+                (flags !=  ARG_REG &&
+                    flags != (ARG_MEM | ARG_REG) &&
+                    flags != (ARG_MEM | ARG_IMMED_VALUE) &&
+                    flags != (ARG_MEM | ARG_REG | ARG_IMMED_VALUE));
 }

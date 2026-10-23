@@ -1,3 +1,4 @@
+SHOWWINDOW
 ; Center: (400, 300)
 ; Radius: 200
 ; Image 800 * 600

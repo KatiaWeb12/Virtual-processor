@@ -153,7 +153,6 @@ ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm)
 ErrorCode writeCommand(FILE* exeFile, FILE* binFile,
                        int opcode, int flags, int reg, int imm,
                        int argsCount);
-int findCommand(const char* commandName, hashFunction_t hashFunction);
 
 // Labels
 ErrorCode loadLabels(label* labels);
@@ -166,9 +165,9 @@ ErrorCode resizeLabels(label* labels, int direction);
 int getRegisterIndex(const char* name);
 
 // Hashing commands
-void formCommandsArr(commandHash_t* commandsArr);
-void createCommandHashEl(commandHash_t* commandsArr, const char* command, size_t commandIndex);
 hash_t hashing(const char* str);
+int findCommand(const char* commandName, hashFunction_t hashFunction, hash_t* hashesArr);
+void formCommandHashesMassive(hash_t* hashesArr);
 
 // Disassembler
 
@@ -188,6 +187,7 @@ ErrorCode cleanRegister(CPUInfo* CPUData);
 void CPUDestroy(CPUInfo* CPUData);
 ErrorCode consoleInput(CPUInfo* CPUData);
 bool jumpType(int el1, int el2, int command);
+bool isPopAvailable(ErrorCode error, int32_t flags);
 
 // Draw
 ErrorCode drawPixel(CPUInfo* CPUData);
@@ -254,4 +254,4 @@ double degreesToRadians(double degrees);
         (ptr)->errCode = (codeValue);                                    \
     } while (0)
 
-#endif // VIRTUAL_PROCESSOR_H
+#endif

@@ -4,11 +4,11 @@ TXLib соболезнует...
 
 Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe,
 
-ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort().
 
 С помощью функции signal() вы можете сами обработать эту ошибку.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x2658 (Main), GetLastError(): 2 (Не удается найти указанный файл), errno: 2 (No such file or directory), _doserrno: 2 (No such file or directory). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x2658 (Main), GetLastError(): 2 (Не удается найти указанный файл), errno: 2 (No such file or directory), _doserrno: 2 (No such file or directory).
 
 --------------------------------------------------
 Стек вызовов:
@@ -21,34 +21,34 @@ TXLib соболезнует...
 # 4 0x00436E00 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: calculateStringsCount() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/extra-functions.cpp:50:
 
      48: size_t calculateStringsCount(const char* text) {
-     49: 
+     49:
 =>   50:     assert(text);
      51:     assert(*text != '\0');
-     52: 
+     52:
 
 # 5 0x00437313 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: readExeProgram() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:88:
 
-     86: 
+     86:
      87:     readExeTextIntoSingleBuffer(fileName, CPUData);
 =>   88:     CPUData->stringsCount = calculateStringsCount(CPUData->textOfExeProgram);
-     89:     recordPtrStringsForExe(CPUData); //TODO: СЃСЃС‹Р»РєРё
-     90: 
+     89:     recordPtrStringsForExe(CPUData);
+     90:
 
 # 6 0x00437266 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPULoad() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:64:
 
      62:     CPUData->programLines = memory;
-     63: 
+     63:
 =>   64:     readExeProgram(exeProgramFile, CPUData);
-     65: 
+     65:
      66:     ErrorCode error = STACK_INIT(stk, 3);
 
 # 7 0x004371BC in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:37:
 
      35:     struct stack_t stk = {};
-     36: 
+     36:
 =>   37:     ErrorCode error = CPULoad(&CPUData, &stk, argv[1]);
      38:     if (error != ERR_OK) return error;
-     39: 
+     39:
 
 --------------------------------------------------
 Developed with:
@@ -75,7 +75,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x5038 (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x5038 (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -85,26 +85,26 @@ TXLib соболезнует...
 # 1 0x00438268 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:605:
 
     603:     int y = CPUData->RAM[1];
-    604: 
+    604:
 =>  605:     txSetColor(TX_BLUE);
     606:     txSetFillColor(TX_BLUE);
-    607: 
+    607:
 
 # 2 0x00437EB5 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:430:
 
     428:             case MY_DRAW: {
-    429: 
+    429:
 =>  430:                 ErrorCode error = drawPixel(CPUData);
     431:                 if (error != ERR_OK) return error;
-    432: 
+    432:
 
 # 3 0x004372A1 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:46:
 
      44:     // createGraphicWindow();
-     45: 
+     45:
 =>   46:     error = CPUexecute(&CPUData);
      47:     if(error == ERR_OK) txSleep(5000);
-     48: 
+     48:
 
 --------------------------------------------------
 Стек вызовов TX:
@@ -114,16 +114,16 @@ TXLib соболезнует...
   13549: HPEN txSetColor (COLORREF color, double thickness /*= 1*/, HDC dc /*= txDC()*/)
   13550:     {
 =>13551: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
-  13552: 
+  13552:
   13553: $   HPEN pen = Win32::CreatePen ((color == TX_TRANSPARENT? PS_NULL : PS_SOLID), ROUND (thickness), color);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:605:
 
     603:     int y = CPUData->RAM[1];
-    604: 
+    604:
 =>  605:     txSetColor(TX_BLUE);
     606:     txSetFillColor(TX_BLUE);
-    607: 
+    607:
 
 --------------------------------------------------
 Developed with:
@@ -150,7 +150,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x4578 (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x4578 (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -160,26 +160,26 @@ TXLib соболезнует...
 # 1 0x00438268 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:605:
 
     603:     int y = CPUData->RAM[1];
-    604: 
+    604:
 =>  605:     txSetColor(TX_BLUE);
     606:     txSetFillColor(TX_BLUE);
-    607: 
+    607:
 
 # 2 0x00437EB5 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:430:
 
     428:             case MY_DRAW: {
-    429: 
+    429:
 =>  430:                 ErrorCode error = drawPixel(CPUData);
     431:                 if (error != ERR_OK) return error;
-    432: 
+    432:
 
 # 3 0x004372A1 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:46:
 
      44:     createGraphicWindow();
-     45: 
+     45:
 =>   46:     error = CPUexecute(&CPUData);
      47:     if(error == ERR_OK) txSleep(5000);
-     48: 
+     48:
 
 --------------------------------------------------
 Стек вызовов TX:
@@ -189,16 +189,16 @@ TXLib соболезнует...
   13549: HPEN txSetColor (COLORREF color, double thickness /*= 1*/, HDC dc /*= txDC()*/)
   13550:     {
 =>13551: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
-  13552: 
+  13552:
   13553: $   HPEN pen = Win32::CreatePen ((color == TX_TRANSPARENT? PS_NULL : PS_SOLID), ROUND (thickness), color);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:605:
 
     603:     int y = CPUData->RAM[1];
-    604: 
+    604:
 =>  605:     txSetColor(TX_BLUE);
     606:     txSetFillColor(TX_BLUE);
-    607: 
+    607:
 
 --------------------------------------------------
 Developed with:
@@ -225,7 +225,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x35E8 (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x35E8 (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -235,26 +235,26 @@ TXLib соболезнует...
 # 1 0x00438268 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:605:
 
     603:     int y = CPUData->RAM[1];
-    604: 
+    604:
 =>  605:     txSetColor(TX_BLUE);
     606:     txSetFillColor(TX_BLUE);
-    607: 
+    607:
 
 # 2 0x00437EB5 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:430:
 
     428:             case MY_DRAW: {
-    429: 
+    429:
 =>  430:                 ErrorCode error = drawPixel(CPUData);
     431:                 if (error != ERR_OK) return error;
-    432: 
+    432:
 
 # 3 0x004372A1 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:46:
 
      44:     createGraphicWindow();
-     45: 
+     45:
 =>   46:     error = CPUexecute(&CPUData);
      47:     if(error == ERR_OK) txSleep(5000);
-     48: 
+     48:
 
 --------------------------------------------------
 Стек вызовов TX:
@@ -264,16 +264,16 @@ TXLib соболезнует...
   13549: HPEN txSetColor (COLORREF color, double thickness /*= 1*/, HDC dc /*= txDC()*/)
   13550:     {
 =>13551: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
-  13552: 
+  13552:
   13553: $   HPEN pen = Win32::CreatePen ((color == TX_TRANSPARENT? PS_NULL : PS_SOLID), ROUND (thickness), color);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:605:
 
     603:     int y = CPUData->RAM[1];
-    604: 
+    604:
 =>  605:     txSetColor(TX_BLUE);
     606:     txSetFillColor(TX_BLUE);
-    607: 
+    607:
 
 --------------------------------------------------
 Developed with:
@@ -300,7 +300,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x252C (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x252C (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -309,27 +309,27 @@ TXLib соболезнует...
 
 # 1 0x00438268 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:605:
 
-    603: 
+    603:
     604:     txSetPixel(x, y, TX_BLUE);
-=>  605: 
+=>  605:
     606:     return ERR_OK;
     607: }
 
 # 2 0x00437EB5 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:430:
 
-    428: 
+    428:
     429:                 ErrorCode error = drawPixel(CPUData);
 =>  430:                 if (error != ERR_OK) return error;
-    431: 
+    431:
     432:                 break;
 
 # 3 0x004372A1 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:46:
 
      44:     createGraphicWindow();
-     45: 
+     45:
 =>   46:     error = CPUexecute(&CPUData);
      47:     if(error == ERR_OK) txSleep(5000);
-     48: 
+     48:
 
 --------------------------------------------------
 Стек вызовов TX:
@@ -339,14 +339,14 @@ TXLib соболезнует...
   13549: HPEN txSetColor (COLORREF color, double thickness /*= 1*/, HDC dc /*= txDC()*/)
   13550:     {
 =>13551: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
-  13552: 
+  13552:
   13553: $   HPEN pen = Win32::CreatePen ((color == TX_TRANSPARENT? PS_NULL : PS_SOLID), ROUND (thickness), color);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:605:
 
-    603: 
+    603:
     604:     txSetPixel(x, y, TX_BLUE);
-=>  605: 
+=>  605:
     606:     return ERR_OK;
     607: }
 
@@ -375,7 +375,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x6718 (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x6718 (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -386,25 +386,25 @@ TXLib соболезнует...
 
     603:     int x = CPUData->RAM[0];
     604:     int y = CPUData->RAM[1];
-=>  605: 
+=>  605:
     606:     txSetPixel(x, y, TX_BLUE);
-    607: 
+    607:
 
 # 2 0x00437EB5 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:430:
 
     428:             }
     429:             case MY_DRAW: {
-=>  430: 
+=>  430:
     431:                 ErrorCode error = drawPixel(CPUData);
     432:                 if (error != ERR_OK) return error;
 
 # 3 0x004372A1 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:46:
 
      44:     createGraphicWindow();
-     45: 
+     45:
 =>   46:     error = CPUexecute(&CPUData);
      47:     txSetPixel(400, 300, TX_BLUE);
-     48: 
+     48:
 
 --------------------------------------------------
 Стек вызовов TX:
@@ -414,16 +414,16 @@ TXLib соболезнует...
   13549: HPEN txSetColor (COLORREF color, double thickness /*= 1*/, HDC dc /*= txDC()*/)
   13550:     {
 =>13551: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
-  13552: 
+  13552:
   13553: $   HPEN pen = Win32::CreatePen ((color == TX_TRANSPARENT? PS_NULL : PS_SOLID), ROUND (thickness), color);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:605:
 
     603:     int x = CPUData->RAM[0];
     604:     int y = CPUData->RAM[1];
-=>  605: 
+=>  605:
     606:     txSetPixel(x, y, TX_BLUE);
-    607: 
+    607:
 
 --------------------------------------------------
 Developed with:
@@ -450,7 +450,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x73CC (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x73CC (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -459,7 +459,7 @@ TXLib соболезнует...
 
 # 1 0x00438583 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:650:
 
-    648: 
+    648:
     649:             if (CPUData->RAM[address] != 0) {
 =>  650:                 txSetPixel(x, y, TX_BLUE);
     651:             }
@@ -468,18 +468,18 @@ TXLib соболезнует...
 # 2 0x0043816C in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:458:
 
     456:                 printf("RAM[240400] = %d\n", CPUData->RAM[240400]);
-    457: 
+    457:
 =>  458:                 ErrorCode error = drawPixel(CPUData);
     459:                 if (error != ERR_OK) return error;
-    460: 
+    460:
 
 # 3 0x00437383 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
 
      50:     #endif
-     51: 
+     51:
 =>   52:     error = CPUexecute(CPUData);
      53:     txSetPixel(400, 300, TX_BLUE);
-     54: 
+     54:
 
 --------------------------------------------------
 Стек вызовов TX:
@@ -489,12 +489,12 @@ TXLib соболезнует...
   13650: bool txSetPixel (double x, double y, COLORREF color, HDC dc /*= txDC()*/)
   13651:     {
 =>13652: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return false;
-  13653: 
+  13653:
   13654: $   txGDI ((Win32::SetPixel (dc, ROUND (x), ROUND (y), color)), dc);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:650:
 
-    648: 
+    648:
     649:             if (CPUData->RAM[address] != 0) {
 =>  650:                 txSetPixel(x, y, TX_BLUE);
     651:             }
@@ -525,7 +525,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x22B0 (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x22B0 (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -534,7 +534,7 @@ TXLib соболезнует...
 
 # 1 0x00438583 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:650:
 
-    648: 
+    648:
     649:             if (CPUData->RAM[address] != 0) {
 =>  650:                 txSetPixel(x, y, TX_BLUE);
     651:             }
@@ -543,18 +543,18 @@ TXLib соболезнует...
 # 2 0x0043816C in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:458:
 
     456:                 printf("RAM[240400] = %d\n", CPUData->RAM[240400]);
-    457: 
+    457:
 =>  458:                 ErrorCode error = drawPixel(CPUData);
     459:                 if (error != ERR_OK) return error;
-    460: 
+    460:
 
 # 3 0x00437383 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
 
      50:     #endif
-     51: 
+     51:
 =>   52:     error = CPUexecute(CPUData);
      53:     txSetPixel(400, 300, TX_BLUE);
-     54: 
+     54:
 
 --------------------------------------------------
 Стек вызовов TX:
@@ -564,12 +564,12 @@ TXLib соболезнует...
   13650: bool txSetPixel (double x, double y, COLORREF color, HDC dc /*= txDC()*/)
   13651:     {
 =>13652: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return false;
-  13653: 
+  13653:
   13654: $   txGDI ((Win32::SetPixel (dc, ROUND (x), ROUND (y), color)), dc);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:650:
 
-    648: 
+    648:
     649:             if (CPUData->RAM[address] != 0) {
 =>  650:                 txSetPixel(x, y, TX_BLUE);
     651:             }
@@ -600,7 +600,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x60DC (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x60DC (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -609,7 +609,7 @@ TXLib соболезнует...
 
 # 1 0x004384ED in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:647:
 
-    645: 
+    645:
     646:             if (CPUData->RAM[address] != 0) {
 =>  647:                 txSetPixel(x, y, TX_BLUE);
     648:             }
@@ -618,17 +618,17 @@ TXLib соболезнует...
 # 2 0x004380D6 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:455:
 
     453:                 printf("RAM[240400] = %d\n", CPUData->RAM[240400]);
-    454: 
+    454:
 =>  455:                 ErrorCode error = drawPixel(CPUData);
     456:                 if (error != ERR_OK) return error;
-    457: 
+    457:
 
 # 3 0x00437380 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
 
      50:     #endif
-     51: 
+     51:
 =>   52:     error = CPUexecute(CPUData);
-     53: 
+     53:
      54:     CPUDestroy(CPUData);
 
 --------------------------------------------------
@@ -639,12 +639,12 @@ TXLib соболезнует...
   13650: bool txSetPixel (double x, double y, COLORREF color, HDC dc /*= txDC()*/)
   13651:     {
 =>13652: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return false;
-  13653: 
+  13653:
   13654: $   txGDI ((Win32::SetPixel (dc, ROUND (x), ROUND (y), color)), dc);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:647:
 
-    645: 
+    645:
     646:             if (CPUData->RAM[address] != 0) {
 =>  647:                 txSetPixel(x, y, TX_BLUE);
     648:             }
@@ -675,7 +675,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x1F40 (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: Cmdre0, Thread: 0x1F40 (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -692,18 +692,18 @@ TXLib соболезнует...
 
 # 2 0x004380D6 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:455:
 
-    453: 
+    453:
     454:                 ErrorCode error = drawPixel(CPUData);
 =>  455:                 if (error != ERR_OK) return error;
-    456: 
+    456:
     457:                 break;
 
 # 3 0x00437380 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
 
      50:     #endif
-     51: 
+     51:
 =>   52:     error = CPUexecute(CPUData);
-     53: 
+     53:
      54:     CPUDestroy(CPUData);
 
 --------------------------------------------------
@@ -714,7 +714,7 @@ TXLib соболезнует...
   13650: bool txSetPixel (double x, double y, COLORREF color, HDC dc /*= txDC()*/)
   13651:     {
 =>13652: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return false;
-  13653: 
+  13653:
   13654: $   txGDI ((Win32::SetPixel (dc, ROUND (x), ROUND (y), color)), dc);
 
 # 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:647:
@@ -750,7 +750,7 @@ TXLib соболезнует...
 Сообщение: Окно рисования не создано или не в порядке.
 Если вы указали параметр "dc", то он неверен.
 
-#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x5D98 (Main), GetLastError(): 13 (Недопустимые данные). 
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x5D98 (Main), GetLastError(): 13 (Недопустимые данные).
 
 --------------------------------------------------
 Стек вызовов:
@@ -759,7 +759,7 @@ TXLib соболезнует...
 
 # 1 0x004384D3 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:643:
 
-    641: 
+    641:
     642:             if (CPUData->RAM[address] != 0) {
 =>  643:                 txSetPixel(x, y, TX_BLUE);
     644:             }
@@ -768,10 +768,85 @@ TXLib соболезнует...
 # 2 0x004380D3 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:454:
 
     452:                 printf("RAM[240400] = %d\n", CPUData->RAM[240400]);
-    453: 
+    453:
 =>  454:                 ErrorCode error = drawPixel(CPUData);
     455:                 if (error != ERR_OK) return error;
-    456: 
+    456:
+
+# 3 0x00437380 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
+
+     50:     #endif
+     51:
+=>   52:     error = CPUexecute(CPUData);
+     53:
+     54:     CPUDestroy(CPUData);
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in bool {anonymous}::TX::txSetPixel(double, double, COLORREF, HDC) at C:\Users\Kate\Desktop\downloads\TX\TXLib.h:13652:
+
+  13650: bool txSetPixel (double x, double y, COLORREF color, HDC dc /*= txDC()*/)
+  13651:     {
+=>13652: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return false;
+  13653:
+  13654: $   txGDI ((Win32::SetPixel (dc, ROUND (x), ROUND (y), color)), dc);
+
+# 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:643:
+
+    641:
+    642:             if (CPUData->RAM[address] != 0) {
+=>  643:                 txSetPixel(x, y, TX_BLUE);
+    644:             }
+    645:         }
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct 22 2026 01:28:06, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 22 2026 01:28:13
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe, файл: C:\Users\Kate\Desktop\downloads\TX\TXLib.h, строка: 13652, функция: bool {anonymous}::TX::txSetPixel(double, double, COLORREF, HDC),
+
+Сообщение: Окно рисования не создано или не в порядке.
+Если вы указали параметр "dc", то он неверен.
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005131DC (32-bit), Flags: Cmdre0, Thread: 0x6950 (Main), GetLastError(): 13 (Недопустимые данные). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00423F62 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: (anonymous namespace)::TX::txSetPixel() at C:/Users/Kate/Desktop/downloads/TX/TXLib.h:13652
+
+# 1 0x004384AE in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: drawPixel() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:641:
+
+    639: 
+    640:             if (CPUData->RAM[address] != 0) {
+=>  641:                 txSetPixel(x, y, TX_BLUE);
+    642:             }
+    643:         }
+
+# 2 0x004380AE in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:452:
+
+    450:             case MY_DRAW: {
+    451: 
+=>  452:                 ErrorCode error = drawPixel(CPUData);
+    453:                 if (error != ERR_OK) return error;
+    454: 
 
 # 3 0x00437380 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
 
@@ -792,13 +867,13 @@ TXLib соболезнует...
   13653: 
   13654: $   txGDI ((Win32::SetPixel (dc, ROUND (x), ROUND (y), color)), dc);
 
-# 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:643:
+# 1 in ErrorCode drawPixel(CPUInfo*) at processor.cpp:641:
 
-    641: 
-    642:             if (CPUData->RAM[address] != 0) {
-=>  643:                 txSetPixel(x, y, TX_BLUE);
-    644:             }
-    645:         }
+    639: 
+    640:             if (CPUData->RAM[address] != 0) {
+=>  641:                 txSetPixel(x, y, TX_BLUE);
+    642:             }
+    643:         }
 
 --------------------------------------------------
 Developed with:
@@ -809,8 +884,8 @@ Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
 See license on: http://txlib.ru
 
 TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
-Compiled:	Oct 22 2026 01:28:06, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
-Started:	Oct 22 2026 01:28:13
+Compiled:	Oct 24 2026 00:26:48, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 24 2026 00:26:55
 
 Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe
 Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
