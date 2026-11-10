@@ -1,21 +1,22 @@
 SHOWWINDOW
+
 ; Center: (400, 300)
-; Radius: 200
-; Image 800 * 600
+; RX = 300, RY = 150
+; Image: 800 x 600
 
 ; RAX = X
 ; RBX = Y
 ; RCX = DX / RAM address
 ; RDX = DY
 
-; Y = 100
-PUSH 100
+; Y = 150
+PUSH 150
 POP RBX
 
 :y_loop
 
-; X = 200
-PUSH 200
+; X = 100
+PUSH 100
 POP RAX
 
 :x_loop
@@ -37,23 +38,25 @@ PUSH RCX
 PUSH RCX
 MUL
 
-; DY^2
+; 4 * DY^2
 PUSH RDX
 PUSH RDX
 MUL
+PUSH 10
+MUL
 
-; DX^2 + DY^2
+; DX^2 + 4 * DY^2
 ADD
 
-; Check DX^2 + DY^2 <= R^2(40000)
-PUSH 40000
-JAE :draw
+; Check DX^2 + 4 * DY^2 <= 90000
+PUSH 80000
+JAE :draw_pixel
 
 JMP :next
 
-:draw
+:draw_pixel
 
-; RCX = RAM address = Y * 800 + X
+; RAM address = Y * 800 + X
 PUSH RBX
 PUSH 800
 MUL
@@ -73,12 +76,10 @@ PUSH 1
 ADD
 POP RAX
 
-; Continue while X <= 600
-PUSH 600
+; Continue while X <= 700
+PUSH 700
 PUSH RAX
 JBE :x_loop
-
-DRAW
 
 ; Y += 1
 PUSH RBX
@@ -86,9 +87,12 @@ PUSH 1
 ADD
 POP RBX
 
-; Continue while Y <= 500
-PUSH 500
+; Continue while Y <= 450
+PUSH 450
 PUSH RBX
 JBE :y_loop
+
+; Draw current row
+DRAW
 
 HLT

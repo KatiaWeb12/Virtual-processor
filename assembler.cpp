@@ -20,9 +20,9 @@ int main(int argc, char* argv[]){
 
     cancelBuffering();
 
-    files usedFiles = {};
+    CPUfiles usedFiles = {};
 
-    ErrorCode error = setFileNames(&usedFiles, MAX_PATH_LENGTH, argc, argv);
+    ErrorCode error = setCPUFileNames(&usedFiles, MAX_PATH_LENGTH, argc, argv);
     if(error) return error;
 
     // Assembler
@@ -31,14 +31,8 @@ int main(int argc, char* argv[]){
     error = asmLoad(&asmProgramData, usedFiles.asmProgramFile);
     if (error != ERR_OK) return error;
 
-    #ifdef CPU_DEBUG
-    consoleProgramOutput(&asmProgramData);
-    #endif
-
     error = assembler(usedFiles.exeFile, usedFiles.binFile, &asmProgramData);
     if (error != ERR_OK) return error;
-
-    printf("Asm completed successfully\n");
 
     return ERR_OK;
 }
@@ -190,11 +184,13 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
         return ERR_FILE_NOT_FOUND;
     };
 
+    BinaryFileHeader header = {};
+    fwrite(&header, sizeof(BinaryFileHeader), 1, binFile);
+
     hash_t hashesArr[COMMANDS_COUNT] = {};
     formCommandHashesMassive(hashesArr);
-    for(size_t i = 0; i < asmProgramData->stringsCount; i++){
 
-        char* line = asmProgramData->programLines[i];
+    for(size_t i = 0; i < asmProgramData->stringsCount; i++){
 
         char commandName[MAX_COMMAND_LENGTH] = {};
         char argument[MAX_COMMAND_LENGTH] = {};
@@ -210,158 +206,142 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
 
             int flags = 0;
             int reg = 0;
-            int imm = 0;
+            int value = 0;
 
-            error = parsePushPopArguments(argument, &flags, &reg, &imm);
-            if (error != ERR_OK) {
-                FCLOSE(exeFile);
-                FCLOSE(binFile);
-                return error;
-            }
+            error = parsePushPopArguments(argument, &flags, &reg, &value);
+            if (error != ERR_OK) return error;
 
-            error = writeCommand(exeFile, binFile, MY_PUSH, flags, reg, imm, 4);
-            if (error != ERR_OK) break;
+            error = writeCommand(exeFile, binFile, MY_PUSH, flags, reg, value, 4);
+            if (error != ERR_OK) return error;
         }
 
         else if (commandIndex == MY_POP) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 2, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             int flags = 0;
             int reg = 0;
-            int imm = 0;
+            int value = 0;
 
-            error = parsePushPopArguments(argument, &flags, &reg, &imm);
+            error = parsePushPopArguments(argument, &flags, &reg, &value);
+            if (error != ERR_OK) return error;
 
-            if (isPopAvailable(error, flags)) {
-
-                error_debug debugLogInfo = {};
-                ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect POP command", ERR_INVALID_ARGUMENT);
-                debugLogInfo.errCode = ERR_INVALID_ARGUMENT;
-                printErrorIntoConsole(&debugLogInfo);
-                printf("%s \n\n", line);
-
-                FCLOSE(exeFile);
-                FCLOSE(binFile);
-                return ERR_INVALID_ARGUMENT;
-            }
-
-            error = writeCommand(exeFile, binFile, MY_POP, flags, reg, imm, 4);
-            if (error != ERR_OK) break;
+            error = writeCommand(exeFile, binFile, MY_POP, flags, reg, value, 4);
+            if (error != ERR_OK) return error;
         }
 
 
         else if (commandIndex == MY_ADD) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_ADD, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
                     }
         else if (commandIndex == MY_SUB) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_SUB, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_MUL) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_MUL, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_DIV) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_DIV, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_SQUARE) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_SQUARE, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_SIN) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_SIN, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_COS){
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_COS, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_TG) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_TG, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_CTG) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_CTG, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_BREAK) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_BREAK, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_IN) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_IN, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_OUT) { // OUT
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_OUT, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_HLT) {
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_HLT, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_JMP) {
 
             error = checkAsmOperation(sscanfResult, exeFile, 2, __func__, __LINE__);
             if (error != ERR_OK) return error;
 
-                        int address = findLabel(asmProgramData->labels, argument);
+            int address = findLabel(asmProgramData->labels, argument);
 
             if (address == INVALID_LABEL) {
                 error_debug debugLogInfo = {};
@@ -374,7 +354,7 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
             }
 
             error = writeCommand(exeFile, binFile, MY_JMP, 0, 0, address, 2);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_CALL){
 
@@ -394,16 +374,16 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
             }
 
             error = writeCommand(exeFile, binFile, MY_CALL, 0, 0, address, 2);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
 
         else if (commandIndex == MY_RET){
 
             ErrorCode checkOper = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if(checkOper != ERR_OK) return ERR_INVALID_DATA;
+            if(checkOper != ERR_OK) return checkOper;
 
             error = writeCommand(exeFile, binFile, MY_RET, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
 
         }
         else if (commandCondition (commandIndex)) {
@@ -434,31 +414,28 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
             else if (commandIndex == MY_JT)  command = MY_JT;
 
             error = writeCommand(exeFile, binFile, command, 0, 0, address, 2);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_DRAW) {
 
             error = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
 
             error = writeCommand(exeFile, binFile, MY_DRAW, 0, 0, 0, 1);
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
         else if (commandIndex == MY_SHOWWINDOW) {
 
             error = checkAsmOperation(sscanfResult, exeFile, 1, __func__, __LINE__);
-
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
 
             error = writeCommand(exeFile, binFile, MY_SHOWWINDOW, 0, 0, 0, 1);
-
-            if (error != ERR_OK) break;
+            if (error != ERR_OK) return ERR_OK;
         }
 
         if (commandIndex == -1) {
 
             error_debug debugLogInfo = {};
-
             ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__,
                                         "Unknown-command", ERR_INVALID_DATA);
 
@@ -467,10 +444,11 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
 
             FCLOSE(exeFile);
             FCLOSE(binFile);
-
             return ERR_INVALID_DATA;
         }
     }
+
+    formHeaderOfBinaryFile(binFile, &header);
 
     FCLOSE(exeFile);
     FCLOSE(binFile);
@@ -478,7 +456,11 @@ ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asm
     return ERR_OK;
 }
 
-ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line){
+ErrorCode checkAsmOperation(size_t sscanfResult,
+                            FILE* file,
+                            size_t operationArgsCount,
+                            const char* function,
+                            const int line){
 
     assert(file);
     assert(function);
@@ -512,29 +494,16 @@ bool commandCondition (int commandIndex){
            (commandIndex == MY_JT);
 }
 
-void removeAsmComment(char* line) {
-
-    assert(line);
-
-    char* comment = strchr(line, ';');
-
-    if (comment != NULL) {
-        *comment = '\0';
-    }
-
-    return;
-}
-
-ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm){
+ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* value){
 
     assert(arg);
     assert(flags);
     assert(reg);
-    assert(imm);
+    assert(value);
 
-    char buffer[64] = {};
+    char buffer[62] = {};
 
-    if (strlen(arg) >= sizeof(buffer)){
+    if (strlen(arg) >= sizeof(buffer)/sizeof(char)){
         error_debug debugLogInfo = {};
         ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "PUSH-argument is too long", ERR_INVALID_ARGUMENT);
         printErrorIntoConsole(&debugLogInfo);
@@ -544,21 +513,27 @@ ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm)
 
     strcpy(buffer, arg);
     size_t bufLength = strlen(buffer);
+    char* bufferPtr = buffer;
 
     // PUSH [...] (RAM-PUSH)
     if(bufLength >= 2 && buffer[0] == '[' && buffer[bufLength-1] == ']'){
 
         *flags |= ARG_MEM;
-        buffer[bufLength-1] ='\0';
-        memmove(buffer, buffer + 1, bufLength - 1); // From buffer + 1 to buffer (bufLength - 1 bytes)
+
+        bufferPtr++;
+        bufLength -= 2;
+
+        bufferPtr[bufLength] = '\0';
     }
 
+
     // PUSH AX+1
-    char* plus = strchr(buffer, '+');
+    char* plus = strchr(bufferPtr, '+');
+
     if(plus != NULL){
 
         *plus = '\0';
-        int registerIndex = getRegisterIndex(buffer);
+        int registerIndex = getRegisterIndex(bufferPtr);
 
         if(registerIndex == INVALID_REG) {
             error_debug debugLogInfo = {};
@@ -568,9 +543,7 @@ ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm)
             return ERR_INVALID_ARGUMENT;
         }
 
-        char rest ='\0';
-
-        if (sscanf(plus + 1, "%d %c", imm, &rest) != 1) {
+        if (sscanf(plus + 1, "%d", value) != 1) {
             error_debug debugLogInfo = {};
             ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Invalid register", ERR_INVALID_ARGUMENT);
             printErrorIntoConsole(&debugLogInfo);
@@ -585,7 +558,7 @@ ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm)
     }
 
     // PUSH AX
-    int registerIndex = getRegisterIndex(buffer);
+    int registerIndex = getRegisterIndex(bufferPtr);
 
     if (registerIndex != INVALID_REG) {
 
@@ -596,9 +569,8 @@ ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm)
     }
 
     // PUSH 1
-    char rest = '\0';
 
-    if (sscanf(buffer, "%d %c", imm, &rest) != 1) return ERR_INVALID_ARGUMENT;
+    if (sscanf(bufferPtr, "%d", value) != 1) return ERR_INVALID_ARGUMENT;
 
     *flags |= ARG_IMMED_VALUE;
 
@@ -606,18 +578,21 @@ ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm)
 }
 
 ErrorCode writeCommand(FILE* exeFile, FILE* binFile,
-                       int opcode, int flags, int reg, int imm,
+                       int opcode, int flags, int reg, int value,
                        int argsCount) {
 
-    int32_t instruction[] = {opcode, flags, reg, imm};
+    assert(exeFile);
+    assert(binFile);
+
+    int32_t instruction[] = {opcode, flags, reg, value};
 
     if (argsCount == 4) {
 
-        fprintf(exeFile, "%d %d %d %d\n", opcode, flags, reg, imm);
+        fprintf(exeFile, "%d %d %d %d\n", opcode, flags, reg, value);
     }
     else if (argsCount == 2) {
 
-        fprintf(exeFile, "%d %d\n", opcode, imm);
+        fprintf(exeFile, "%d %d\n", opcode, value);
     }
     else {
 
@@ -627,6 +602,32 @@ ErrorCode writeCommand(FILE* exeFile, FILE* binFile,
     fwrite(instruction, sizeof(int32_t), 4, binFile);
 
     return ERR_OK;
+}
+
+void removeAsmComment(char* line) {
+
+    assert(line);
+
+    char* comment = strchr(line, ';');
+
+    if (comment != NULL) {
+        *comment = '\0';
+    }
+
+    return;
+}
+
+void formHeaderOfBinaryFile(FILE* binFile, BinaryFileHeader* header){
+
+    long fileSize = ftell(binFile); //the current position of the file pointer
+
+    size_t instructionsSize = fileSize - sizeof(BinaryFileHeader);
+
+    header->commandsCount = instructionsSize / sizeof(binaryInstruction);
+
+    fseek(binFile, 0, SEEK_SET); //go back to the beginning of the file
+
+    fwrite(header, sizeof(BinaryFileHeader), 1, binFile);
 }
 
 // Labels
@@ -834,13 +835,33 @@ void formCommandHashesMassive(hash_t* hashesArr){
 
     assert(hashesArr);
 
-    hash_t hashes[] = {hashing("PUSH"), hashing("ADD"), hashing("SUB"), hashing("MUL"), hashing("DIV"), hashing("SQUARE"),
-                hashing("SIN"), hashing("COS"), hashing("TG"), hashing("CTG"), hashing("BREAK"), hashing("IN"),
-                hashing("OUT"), hashing("HLT"), hashing("JMP"), hashing("JA"), hashing("JB"), hashing("JAE"),
-                hashing("JBE"), hashing("JE"), hashing("JNE"), hashing("JT"), hashing("CALL"), hashing("RET"),
-                hashing("POP"), hashing("DRAW"), hashing("SHOWWINDOW")};
-
-    memcpy(hashesArr, hashes, sizeof(hashes));
+    hashesArr[1]  = hashing("PUSH");
+    hashesArr[2]  = hashing("ADD");
+    hashesArr[3]  = hashing("SUB");
+    hashesArr[4]  = hashing("MUL");
+    hashesArr[5]  = hashing("DIV");
+    hashesArr[6]  = hashing("SQUARE");
+    hashesArr[7]  = hashing("SIN");
+    hashesArr[8]  = hashing("COS");
+    hashesArr[9]  = hashing("TG");
+    hashesArr[10] = hashing("CTG");
+    hashesArr[11] = hashing("BREAK");
+    hashesArr[12] = hashing("IN");
+    hashesArr[13] = hashing("OUT");
+    hashesArr[14] = hashing("HLT");
+    hashesArr[15] = hashing("JMP");
+    hashesArr[16] = hashing("JA");
+    hashesArr[17] = hashing("JB");
+    hashesArr[18] = hashing("JAE");
+    hashesArr[19] = hashing("JBE");
+    hashesArr[20] = hashing("JE");
+    hashesArr[21] = hashing("JNE");
+    hashesArr[22] = hashing("JT");
+    hashesArr[23] = hashing("CALL");
+    hashesArr[24] = hashing("RET");
+    hashesArr[25] = hashing("POP");
+    hashesArr[26] = hashing("DRAW");
+    hashesArr[27] = hashing("SHOWWINDOW");
 
     return;
 }
@@ -853,41 +874,33 @@ int findCommand(const char* commandName, hashFunction_t hashFunction, hash_t* ha
 
     hash_t hash = hashFunction(commandName);
 
-    if( hash == hashesArr[MY_PUSH - 1])     return MY_PUSH;
-    if( hash == hashesArr[MY_POP - 1])        return MY_POP;
-    if( hash == hashesArr[MY_ADD - 1])        return MY_ADD;
-    if( hash == hashesArr[MY_SUB - 1])        return MY_SUB;
-    if( hash == hashesArr[MY_MUL - 1])        return MY_MUL;
-    if( hash == hashesArr[MY_DIV - 1])        return MY_DIV;
-    if( hash == hashesArr[MY_SQUARE - 1])     return MY_SQUARE;
-    if( hash == hashesArr[MY_SIN - 1])        return MY_SIN;
-    if( hash == hashesArr[MY_COS - 1])        return MY_COS;
-    if( hash == hashesArr[MY_TG - 1])         return MY_TG;
-    if( hash == hashesArr[MY_CTG - 1])        return MY_CTG;
-    if( hash == hashesArr[MY_BREAK - 1])      return MY_BREAK;
-    if( hash == hashesArr[MY_IN - 1])         return MY_IN;
-    if( hash == hashesArr[MY_OUT - 1])        return MY_OUT;
-    if( hash == hashesArr[MY_HLT - 1])        return MY_HLT;
-    if( hash == hashesArr[MY_JMP - 1])        return MY_JMP;
-    if( hash == hashesArr[MY_CALL - 1])       return MY_CALL;
-    if( hash == hashesArr[MY_RET - 1])        return MY_RET;
-    if( hash == hashesArr[MY_JA - 1])         return MY_JA;
-    if( hash == hashesArr[MY_JB - 1])         return MY_JB;
-    if( hash == hashesArr[MY_JAE - 1])        return MY_JAE;
-    if( hash == hashesArr[MY_JBE - 1])        return MY_JBE;
-    if( hash == hashesArr[MY_JE - 1])         return MY_JE;
-    if( hash == hashesArr[MY_JNE - 1])        return MY_JNE;
-    if( hash == hashesArr[MY_JT - 1])         return MY_JT;
-    if( hash == hashesArr[MY_DRAW - 1])       return MY_DRAW;
-    if( hash == hashesArr[MY_SHOWWINDOW - 1]) return MY_SHOWWINDOW;
+    if( hash == hashesArr[MY_PUSH])     return MY_PUSH;
+    if( hash == hashesArr[MY_POP])        return MY_POP;
+    if( hash == hashesArr[MY_ADD])        return MY_ADD;
+    if( hash == hashesArr[MY_SUB])        return MY_SUB;
+    if( hash == hashesArr[MY_MUL])        return MY_MUL;
+    if( hash == hashesArr[MY_DIV])        return MY_DIV;
+    if( hash == hashesArr[MY_SQUARE])     return MY_SQUARE;
+    if( hash == hashesArr[MY_SIN])        return MY_SIN;
+    if( hash == hashesArr[MY_COS])        return MY_COS;
+    if( hash == hashesArr[MY_TG])         return MY_TG;
+    if( hash == hashesArr[MY_CTG])        return MY_CTG;
+    if( hash == hashesArr[MY_BREAK])      return MY_BREAK;
+    if( hash == hashesArr[MY_IN])         return MY_IN;
+    if( hash == hashesArr[MY_OUT])        return MY_OUT;
+    if( hash == hashesArr[MY_HLT])        return MY_HLT;
+    if( hash == hashesArr[MY_JMP])        return MY_JMP;
+    if( hash == hashesArr[MY_CALL])       return MY_CALL;
+    if( hash == hashesArr[MY_RET])        return MY_RET;
+    if( hash == hashesArr[MY_JA])         return MY_JA;
+    if( hash == hashesArr[MY_JB])         return MY_JB;
+    if( hash == hashesArr[MY_JAE])        return MY_JAE;
+    if( hash == hashesArr[MY_JBE])        return MY_JBE;
+    if( hash == hashesArr[MY_JE])         return MY_JE;
+    if( hash == hashesArr[MY_JNE])        return MY_JNE;
+    if( hash == hashesArr[MY_JT])         return MY_JT;
+    if( hash == hashesArr[MY_DRAW])       return MY_DRAW;
+    if( hash == hashesArr[MY_SHOWWINDOW]) return MY_SHOWWINDOW;
 
     return -1;
-}
-
-bool isPopAvailable(ErrorCode error, int32_t flags){
-    return error != ERR_OK ||
-                (flags !=  ARG_REG &&
-                    flags != (ARG_MEM | ARG_REG) &&
-                    flags != (ARG_MEM | ARG_IMMED_VALUE) &&
-                    flags != (ARG_MEM | ARG_REG | ARG_IMMED_VALUE));
 }

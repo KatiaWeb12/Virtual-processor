@@ -13,27 +13,15 @@
 
 ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount){
 
-    if(stack == NULL) return ERR_INVALID_ARGUMENT;
+    assert(stack);
 
-    if(stack->size < argCount) return ERR_INVALID_DATA;
+    if(stack->size < argCount){
+        error_debug debugLogInfo = {};
+        ERROR_STRUCT_FORMAT(&debugLogInfo, __func__, __LINE__, "Incorrect command", ERR_INVALID_DATA);
+        printErrorIntoConsole(&debugLogInfo);
 
-    return ERR_OK;
-}
-
-ErrorCode printErrorIntoConsole(struct error_debug* debugLogInfo) {
-
-    if(debugLogInfo == NULL){
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    printf("[%s] Function '%s' was completed with Error %d in file '%s' in line %d \n",
-            debugLogInfo->time,
-            debugLogInfo->function,
-            debugLogInfo->errCode,
-            debugLogInfo->file,
-            debugLogInfo->line);
-
-    printf("ErrorMessage: %s \n", debugLogInfo->message);
+        return ERR_INVALID_DATA;
+    };
 
     return ERR_OK;
 }
@@ -72,7 +60,7 @@ size_t calculateStringsCount(const char* text) {
     return stringCount;
 }
 
-ErrorCode setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]){
+ErrorCode setCPUFileNames(struct CPUfiles* usedFiles, const size_t maxPathLength, int argc, char* argv[]){
 
     if(argc != 4){
 

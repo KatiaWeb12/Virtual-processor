@@ -891,3 +891,275 @@ Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.e
 Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
 
 --------------------------------------------------
+
+--------------------------------------------------
+TXLib предупреждает:
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe,
+
+ВНЕЗАПНО: Деление на ноль при операции с плавающей точкой.
+
+#1: Исключение EXCEPTION_FLT_DIVIDE_BY_ZERO (0xC000008E) при выполнении кода по адресу 0x00436984 в функции divCommand() в файле C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/math-functions.cpp на строке 70 в модуле C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe. Спасибо _txUnhandledExceptionFilter(), что сообщил. Люблю его <3
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: CMdRe0, Thread: 0x4950 (Main). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00436984 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: divCommand() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/math-functions.cpp:70:
+
+     68:     stackPop(stack, &value2);
+     69: 
+=>   70:     double result = (double)value1 / (double)value2;
+     71: 
+     72:     stackPush(stack, (stackElem_t)(result * 1000));
+
+# 1 0x00437C65 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:277:
+
+    275:                 }
+    276: 
+=>  277:                 divCommand(CPUData->stack);
+    278: 
+    279:                 break;
+
+# 2 0x00437380 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
+
+     50:     #endif
+     51: 
+=>   52:     error = CPUexecute(CPUData);
+     53: 
+     54:     CPUDestroy(CPUData);
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in void createGraphicWindow() at processor.cpp:625:
+
+    623:     txClear();
+    624: 
+=>  625:     txSetColor(TX_BLUE);
+    626: }
+    627: 
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct 24 2026 10:16:21, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 27 2026 12:37:16
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe,
+
+ВНЕЗАПНО: signal (8, 0x00): SIGFPE: Грубая ошибка в вычислениях. 
+
+Деление на ноль при операции с плавающей точкой.
+
+#1: Исключение EXCEPTION_FLT_DIVIDE_BY_ZERO (0xC000008E) при выполнении кода по адресу 0x00436984 в функции divCommand() в файле C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/math-functions.cpp на строке 70 в модуле C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe. Спасибо _txUnhandledExceptionFilter(), что сообщил. Люблю его <3
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#2: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: CMdRe0, Thread: 0x4950 (Main). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00436984 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: divCommand() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/math-functions.cpp:70:
+
+     68:     stackPop(stack, &value2);
+     69: 
+=>   70:     double result = (double)value1 / (double)value2;
+     71: 
+     72:     stackPush(stack, (stackElem_t)(result * 1000));
+
+# 1 0x00437C65 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:277:
+
+    275:                 }
+    276: 
+=>  277:                 divCommand(CPUData->stack);
+    278: 
+    279:                 break;
+
+# 2 0x00437380 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
+
+     50:     #endif
+     51: 
+=>   52:     error = CPUexecute(CPUData);
+     53: 
+     54:     CPUDestroy(CPUData);
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in void createGraphicWindow() at processor.cpp:625:
+
+    623:     txClear();
+    624: 
+=>  625:     txSetColor(TX_BLUE);
+    626: }
+    627: 
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct 24 2026 10:16:21, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 27 2026 12:37:17
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib предупреждает:
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe,
+
+ВНЕЗАПНО: Деление на ноль при операции с плавающей точкой.
+
+#1: Исключение EXCEPTION_FLT_DIVIDE_BY_ZERO (0xC000008E) при выполнении кода по адресу 0x00436984 в функции divCommand() в файле C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/math-functions.cpp на строке 70 в модуле C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe. Спасибо _txUnhandledExceptionFilter(), что сообщил. Люблю его <3
+
+#1: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: CMdRe0, Thread: 0x21F0 (Main). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00436984 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: divCommand() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/math-functions.cpp:70:
+
+     68:     stackPop(stack, &value2);
+     69: 
+=>   70:     double result = (double)value1 / (double)value2;
+     71: 
+     72:     stackPush(stack, (stackElem_t)(result * 1000));
+
+# 1 0x00437C65 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:277:
+
+    275:                 }
+    276: 
+=>  277:                 divCommand(CPUData->stack);
+    278: 
+    279:                 break;
+
+# 2 0x00437380 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
+
+     50:     #endif
+     51: 
+=>   52:     error = CPUexecute(CPUData);
+     53: 
+     54:     CPUDestroy(CPUData);
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in void createGraphicWindow() at processor.cpp:625:
+
+    623:     txClear();
+    624: 
+=>  625:     txSetColor(TX_BLUE);
+    626: }
+    627: 
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct 24 2026 10:16:21, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 27 2026 12:49:58
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe,
+
+ВНЕЗАПНО: signal (8, 0x00): SIGFPE: Грубая ошибка в вычислениях. 
+
+Деление на ноль при операции с плавающей точкой.
+
+#1: Исключение EXCEPTION_FLT_DIVIDE_BY_ZERO (0xC000008E) при выполнении кода по адресу 0x00436984 в функции divCommand() в файле C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/math-functions.cpp на строке 70 в модуле C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe. Спасибо _txUnhandledExceptionFilter(), что сообщил. Люблю его <3
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#2: TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400], Instance: 0x005141DC (32-bit), Flags: CMdRe0, Thread: 0x21F0 (Main). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00436984 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: divCommand() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/math-functions.cpp:70:
+
+     68:     stackPop(stack, &value2);
+     69: 
+=>   70:     double result = (double)value1 / (double)value2;
+     71: 
+     72:     stackPush(stack, (stackElem_t)(result * 1000));
+
+# 1 0x00437C65 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: CPUexecute() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:277:
+
+    275:                 }
+    276: 
+=>  277:                 divCommand(CPUData->stack);
+    278: 
+    279:                 break;
+
+# 2 0x00437380 in C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe: main() at C:/Users/Kate/Desktop/DED-C_Tasks/Task 6 virtual processor/processor.cpp:52:
+
+     50:     #endif
+     51: 
+=>   52:     error = CPUexecute(CPUData);
+     53: 
+     54:     CPUDestroy(CPUData);
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in void createGraphicWindow() at processor.cpp:625:
+
+    623:     txClear();
+    624: 
+=>  625:     txSetColor(TX_BLUE);
+    626: }
+    627: 
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 175, Date: 2025-12-31 23:02:50 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Kate\Desktop\downloads\TX\TXLib.h
+Compiled:	Oct 24 2026 10:16:21, GNU g++ 4.8.1, std=201103L, MinGW Runtime 3.20, 32-bit, DEBUG
+Started:	Oct 27 2026 12:49:58
+
+Run file:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor\processor.exe
+Directory:	C:\Users\Kate\Desktop\DED-C_Tasks\Task 6 virtual processor
+
+--------------------------------------------------

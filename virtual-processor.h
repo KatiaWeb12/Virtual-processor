@@ -4,9 +4,8 @@
 typedef hash_t (*hashFunction_t)(const char* str);
 
 // Constants
-const size_t MAX_PATH_LENGTH = 300;
 const size_t MAX_COMMAND_LENGTH = 300;
-const size_t COMMANDS_COUNT = 27;
+const size_t COMMANDS_COUNT = 28;
 const size_t START_LABEL_COUNT = 5;
 const size_t RAM_CAPACITY = 800 * 600;
 const int    MAX_CALL_DEPTH = 256;
@@ -61,7 +60,7 @@ enum ArgFlags {
     ARG_MEM         = 1 << 2   // 100 = 4
 };
 
-struct files {
+struct CPUfiles {
         char path[MAX_PATH_LENGTH];
         char asmProgramFile[MAX_PATH_LENGTH];
         char exeFile[MAX_PATH_LENGTH];
@@ -78,13 +77,8 @@ struct debugCPU_t {
 };
 #endif
 
-struct error_debug {
-    const char* time;
-    const char* file;
-    const char* function;
-    size_t line;
-    const char* message;
-    ErrorCode errCode;
+struct BinaryFileHeader {
+    uint32_t commandsCount;
 };
 
 struct commandHash_t {
@@ -116,7 +110,7 @@ struct binaryInstruction {
     int32_t opcode;
     int32_t flags;
     int32_t reg;
-    int32_t imm;
+    int32_t value;
 };
 
 struct CPUInfo {
@@ -139,8 +133,6 @@ struct CPUInfo {
 
 // Prototypes
 
-// Assembler
-
 // Assembler-work
 ErrorCode asmLoad(asmProgramInfo* asmData, char* asmProgramFile);
 ErrorCode readAsmProgram(const char* fileName, asmProgramInfo* asmProgramData);
@@ -149,10 +141,11 @@ void recordPtrStringsForAsm(struct asmProgramInfo* asmProgramData);
 ErrorCode assembler(const char* exeFileName, const char* binFileName, struct asmProgramInfo* asmProgramData);
 bool commandCondition (int commandIndex);
 void removeAsmComment(char* line);
-ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* imm);
+ErrorCode parsePushPopArguments(const char* arg, int* flags, int* reg, int* value);
 ErrorCode writeCommand(FILE* exeFile, FILE* binFile,
-                       int opcode, int flags, int reg, int imm,
+                       int opcode, int flags, int reg, int value,
                        int argsCount);
+void formHeaderOfBinaryFile(FILE* binFile, BinaryFileHeader* header);
 
 // Labels
 ErrorCode loadLabels(label* labels);
@@ -170,13 +163,11 @@ int findCommand(const char* commandName, hashFunction_t hashFunction, hash_t* ha
 void formCommandHashesMassive(hash_t* hashesArr);
 
 // Disassembler
-
 const char* getCommandName(int opcode);
 const char* getRegisterName(int reg);
 void printArgument(FILE* output, const binaryInstruction* command);
 
 // Processor
-
 ErrorCode readExeProgram(const char* fileName, struct CPUInfo* CPUData);
 ErrorCode readExeTextIntoSingleBuffer(const char* fileName, struct CPUInfo* CPUData);
 ErrorCode recordPtrStringsForExe(struct CPUInfo* CPUData);
@@ -188,19 +179,19 @@ void CPUDestroy(CPUInfo* CPUData);
 ErrorCode consoleInput(CPUInfo* CPUData);
 bool jumpType(int el1, int el2, int command);
 bool isPopAvailable(ErrorCode error, int32_t flags);
+ErrorCode executePush(CPUInfo* CPUData, const binaryInstruction* instruction);
+ErrorCode executePop(CPUInfo* CPUData, const binaryInstruction* instruction);
 
 // Draw
 ErrorCode drawPixel(CPUInfo* CPUData);
 void createGraphicWindow();
 
 // Extra functions
-
 ErrorCode checkStackBeforeOperation(stack_t* stack, size_t argCount);
 ErrorCode checkAsmOperation(size_t sscanfResult, FILE* file, size_t operationArgsCount, const char* function, const int line);
-ErrorCode printErrorIntoConsole(struct error_debug* debugLogInfo);
 ErrorCode consoleProgramOutput(struct asmProgramInfo* asmProgramData);
+ErrorCode setCPUFileNames(struct CPUfiles* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
 
-ErrorCode setFileNames(struct files* usedFiles, const size_t maxPathLength, int argc, char* argv[]);
 ErrorCode setBinFilename(char* exeFile, const size_t maxPathLength, int argc, char* argv[]);
 void cancelBuffering();
 size_t calculateStringsCount(const char* text);
